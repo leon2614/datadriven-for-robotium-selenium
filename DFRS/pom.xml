@@ -1,0 +1,96 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.dfrs</groupId>
+  <artifactId>DFRS</artifactId>
+  <version>1.0-SNAPSHOT</version>
+
+  <name>DFRS</name>
+  <description>An Android  test app built with Maven</description>
+
+  <packaging>apk</packaging>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+  
+  <dependencies>
+    <!-- dependency on android.jar from local Maven repo -->
+    <dependency>
+      <groupId>android</groupId>
+      <artifactId>android</artifactId>
+      <version>2.1_r3</version>
+      <scope>provided</scope>
+    </dependency>
+  
+    <!-- dependency on maps.jar from local Maven repo -->
+    <dependency>
+      <groupId>com.google.android.maps</groupId>
+      <artifactId>maps</artifactId>
+      <version>7_r1</version>
+      <scope>provided</scope>
+    </dependency>
+	
+	<!-- dependency on SUT proj -->
+	
+	<!-- Others -->
+	<dependency>
+		<groupId>com.jayway.android.robotium</groupId>
+		<artifactId>robotium-solo</artifactId>
+		<scope>compile</scope>
+		<type>jar</type>
+		<version>3.0</version>
+	</dependency>
+	
+	<dependency>
+		<groupId>junit</groupId>
+		<artifactId>junit</artifactId>
+		<version>4.8.1</version>
+	</dependency>
+	
+	<dependency>
+		<groupId>net.sourceforge.jexcelapi</groupId>
+		<artifactId>jxl</artifactId>
+		<version>2.6.12</version>
+	</dependency>
+	
+	<dependency>
+		<groupId>org.apache.poi</groupId>
+		<artifactId>poi</artifactId>
+		<version>3.7</version>
+	</dependency>
+	
+  </dependencies>
+	<repositories>
+		<repository>
+			<id>oss.sonatype.org-jayway</id>
+			<url>http://oss.sonatype.org/content/groups/jayway/</url>
+		</repository>
+	</repositories>
+ 	<build>
+		<sourceDirectory>src</sourceDirectory>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.5</source>
+					<target>1.5</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.jayway.maven.plugins.android.generation2</groupId>
+				<artifactId>maven-android-plugin</artifactId>
+				<configuration>
+					<sdk>
+						<path>${env.ANDROID_HOME}</path>
+						<platform>2.1</platform>
+					</sdk>
+					<deleteConflictingFiles>true</deleteConflictingFiles>
+				</configuration>
+				<extensions>true</extensions>
+			</plugin>
+		</plugins>
+	</build>
+</project>
