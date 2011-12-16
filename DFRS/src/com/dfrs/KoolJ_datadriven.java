@@ -11,15 +11,19 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import jxl.write.WriteException;
-
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 
+import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Environment;
-import android.util.Log;
+import android.os.IBinder;
+import android.os.RemoteException;
 import android.util.Log;
 
 import com.jayway.android.robotium.solo.Solo;
@@ -38,7 +42,9 @@ public class KoolJ_datadriven {
 	Object[][] data_key;
 	Object[][] data_url_batch;
 	int read_first = 1;
-	int file_download_done=0;
+	int file_download_done = 0;
+	
+	
 	
 	//Open CONFIG to BATCH,SUITE,TEST files
 	public void openconfig(String config_xls, String output_xls, Solo solo){
@@ -53,21 +59,27 @@ public class KoolJ_datadriven {
 		{
 			Log.e("KOOLJ_log", "DATA IS AVAIL");
 			KOOLJ_log=KOOLJ_log+"\n"+"DATA IS AVAIL";
-			//Find to run BATCH
 			
-			for (int i=0; i< data_batch.length; i++)
-			{	
-				
-				//if files from HTTP, download them
-				file_download_done = 1;
-				data_url_batch = CreateDataFromCSV("/url_batch.xls");
-				for (int i_d=0; i_d< data_url_batch.length; i_d++)
+			//if files from HTTP, download them
+			file_download_done = 1;
+			data_url_batch = CreateDataFromCSV("/url_batch.xls");
+			for (int i_d=1; i_d< data_url_batch.length; i_d++)
+			{					
+				if (data_url_batch[0][1].toString().equals("yes"))
 				{
-					Log.e("KOOLJ_start_downloading", data_url_batch[i_d][0].toString());
 					URLfile(data_url_batch[i_d][1].toString(),data_url_batch[i_d][0].toString());
 				}
-
-				if (file_download_done > 2)
+				else 
+				{
+					file_download_done = 3;
+				}	
+				
+			}
+				
+			//Find to run BATCH	
+			for (int i=0; i< data_batch.length; i++)
+			{	
+				if (file_download_done > 1)
 				{
 					//When downloading done, read files
 					if (data_batch[i][0].equals("xls_batch_url")) 
@@ -83,7 +95,7 @@ public class KoolJ_datadriven {
 			}
 			
 			//Find to run TEST
-			if (file_download_done > 3)
+			if (file_download_done > 2)
 			{
 				for (int ii=0; ii< data_suite.length; ii++)
 				{
@@ -102,58 +114,275 @@ public class KoolJ_datadriven {
 						data_key = CreateDataFromCSV(data_key_var);
 						
 						//Run each KEY
-						for (int iiii=0; iiii< data_key.length; iiii++)
+						String[] keyx_label=new String[data_key.length];
+						String[] valuex_label=new String[data_key.length];
+						String[] key_for=new String[data_key.length];
+						String[] valuestart_for=new String[data_key.length];
+						String[] valueend_for=new String[data_key.length];
+						String[] valueacce_for=new String[data_key.length];
+						String[] key_endfor=new String[data_key.length];
+
+
+						int for_step = 0;
+						int for_step_backward = 0;						
+						int endfor_step = 0;
+						int keyx_label_step = 0;
+						int iiii_label = 0;
+						int value_valuestart_for = 0;
+						int value_valueend_for = 0;
+						int value_valueacce_for = 0;
+						int varstore_kv_step = 0;
+						int varstore_step = 0;
+						int varstore_count = 0;
+						
+						//Store LABEL if have
+						for (int iiii=iiii_label; iiii< data_key.length; iiii++)
+						{
+							String key_target = data_key[iiii][1].toString();
+							if (key_target.equals("label"))
+							{
+								
+								keyx_label[keyx_label_step] = ""+iiii;
+								valuex_label[keyx_label_step] = data_key[iiii][2].toString();
+								
+								Log.e("KOOLJ_label_", data_key[iiii][2].toString());
+								keyx_label_step++;
+							}
+						}
+						//Count FOR..ENDFOR if have
+						for (int iiii=iiii_label; iiii< data_key.length; iiii++)
+						{
+							String key_target = data_key[iiii][1].toString();
+							if (key_target.equals("for"))
+							{
+								key_for[for_step] = ""+iiii;
+								for_step++;
+								for_step_backward = for_step;
+							}
+							if (key_target.equals("endfor"))
+							{
+								for_step_backward--;
+								key_endfor[endfor_step] = key_for[for_step_backward].toString();
+								endfor_step++;
+								
+							}
+						}
+						
+						//Count STORE
+						for (int iiii=iiii_label; iiii< data_key.length; iiii++)
+						{
+							String key_target = data_key[iiii][1].toString();
+							if (key_target.equals("storevar"))
+							{
+								varstore_count++;
+							}
+						}
+						
+						//Store values of STORE if have
+						Object[][] varstore_kv=new Object[varstore_count][2];
+						for (int iiii=iiii_label; iiii< data_key.length; iiii++)
+						{
+							String key_target = data_key[iiii][1].toString();
+							if (key_target.equals("storevar"))
+							{
+								varstore_kv[varstore_step][0] = data_key[iiii][2].toString();
+								varstore_kv[varstore_step][1] = data_key[iiii][3].toString();
+								varstore_step++;									
+							}
+						}
+						
+						//Search to change the STORE VAR if it is repeated
+						/*
+						for (int iiii=iiii_label; iiii< data_key.length; iiii++)
+						{
+							String key_target = data_key[iiii][1].toString();
+							if (key_target.equals("storevar"))
+							{
+								String var_temp = data_key[iiii][2].toString();
+								String var_temp3 = data_key[iiii][3].toString();
+								for (int ix = 0; ix< varstore_kv.length; ix++)
+								{
+									String var_temp2 = varstore_kv[ix][0].toString();
+									if (var_temp2.equals(var_temp))
+									{
+										for (int iz = 0; iz< varstore_kv.length; iz++)
+										{
+											if (!var_temp2.equals(var_temp3))
+											{
+												varstore_kv[ix][1] = data_key[iiii][3].toString();
+												break;
+											}	
+										}	
+									}
+								}
+							}
+						}
+						*/
+						
+						//Count IF..ENDIF if have
+						for (int iiii=iiii_label; iiii< data_key.length; iiii++)
+						{
+
+						}
+						//Run each KEY
+						for (int iiii=iiii_label; iiii< data_key.length; iiii++)
 						{
 							
 							String key_target = data_key[iiii][1].toString();
 							if(key_target.equals("sleep"))
 							{
 								int key_value = Integer.parseInt(data_key[iiii][2].toString());
-								Log.e("KOOLJ_sleep_", String.valueOf(key_value));
+								
 								solo_sleep(key_value, solo);
+							}
+							else if(key_target.equals("for"))
+							{
+								//for (int i = 0; i< varstore_kv.length; i++)
+								//{
+									//duyet varstore_kv
+										//so sanh [i][0] voi data_key[iiii][3].toString()
+											// lay ra varstore_kv[i][1]
+									//duyet varstore_kv
+										//so sanh [i][0] voi data_key[iiii][4].toString()	
+											// lay ra varstore_kv[i][1]
+									//duyet varstore_kv
+										//so sanh [i][0] voi data_key[iiii][5].toString()
+											//// lay ra varstore_kv[i][1]
+											
+								//}
+							}
+							else if(key_target.equals("endfor"))
+							{
+								/*
+								if ( value_valuestart_for <= value_valueend_for)
+								{
+									value_valuestart_for = value_valuestart_for + value_valueacce_for;
+									for (int i = 0; i< valueend_for_yes.length; i++)
+									{
+										int key_valueend_for_yes = Integer.parseInt(valueend_for_yes[i].toString());
+										if (key_valueend_for_yes == iiii)
+										{
+											iiii_label = Integer.parseInt(valueend_for_yes[i].toString());
+											iiii = iiii_label;
+											break;
+										}
+									}
+								}
+								*/
+							}
+							else if(key_target.equals("storevar"))
+							{
+								//Search to change the VAR
+								/*
+								Log.e("KOOLJ_STEP" , "_________");
+								for (int iz = 0; iz< varstore_kv.length; iz++)
+								{
+									Log.e("KOOLJ_flow " , ""+iz);
+									String var_temp = varstore_kv[iz][0].toString();
+									if (var_temp.equals(data_key[iiii][2].toString()))
+									{
+										String var_temp3 = " ";
+										for (int ix = 0; ix< varstore_kv.length; ix++)
+										{
+											String var_temp2 = varstore_kv[ix][0].toString();
+											Log.e("KOOLJ_temp2 " , var_temp2);
+											Log.e("KOOLJ_datak3 " , data_key[iiii][3].toString());
+											if (var_temp2.equals(data_key[iiii][3].toString()))
+											{
+												var_temp3 = varstore_kv[ix][1].toString();
+												//varstore_kv[iz][1] = varstore_kv[ix][1].toString();
+												Log.e("KOOLJ_eq" + "_" + iz + " " + varstore_kv[iz][0].toString(), varstore_kv[iz][1].toString());
+												//break;
+											}
+											
+										}
+										varstore_kv[iz][1] = var_temp3;
+									//break;
+									}
+									
+								}
+								*/
+							}	
+							else if(key_target.equals("tracevar"))
+							{
+								/*
+								for (int i = 0; i< varstore_kv.length; i++)
+								{
+									String var_temp = varstore_kv[i][0].toString();
+									if (var_temp.equals(data_key[iiii][2].toString()))
+									{									
+										Log.e("KOOLJ_TRACE" + i + "_"+varstore_kv[i][0].toString(), varstore_kv[i][1].toString());
+										break;
+									}
+								}
+								*/
+							}							
+							else if(key_target.equals("getCurrentActivity"))
+							{
+								solo_assertCurrentActivity ("View current activity fail!", solo.getCurrentActivity().getClass(), solo);
+								
+							}
+							else if(key_target.equals("screenshot"))
+							{
+								//Float key_value1 = Float.valueOf(data_key[iiii][2].toString());
+								//Float key_value2 = Float.valueOf(data_key[iiii][3].toString());
+								//asl_screenshot(key_value1, key_value2, solo);
+								
 							}
 							else if(key_target.equals("sendKey"))
 							{
 								int key_value = Integer.parseInt(data_key[iiii][2].toString());
-								Log.e("KOOLJ_sendKey_", String.valueOf(key_value));
+								
 								solo_key(key_value, solo);
 								
 							}
 							else if (key_target.equals("searchText"))
 							{
-								Log.e("KOOLJ_searchText_", data_key[iiii][2].toString());
+								
 								solo_searchtext(data_key[iiii][2].toString(), solo);
 								
 							}
 							else if (key_target.equals("goBack"))
 							{
+								
 								solo_back(solo);
+								
 								
 							}
 							else if (key_target.equals("enterText"))
 							{
-								solo_enterkey(Integer.parseInt(data_key[iiii][2].toString()), data_key[iiii][3].toString(), solo);
 								
+								solo_enterkey(Integer.parseInt(data_key[iiii][2].toString()), data_key[iiii][3].toString(), solo);
 							}
 							else if (key_target.equals("clickOnButton"))
 							{
+								
 								solo_clickonbutton(data_key[iiii][2].toString(), solo);
 								
 							}
+							
+							else if (key_target.equals("goto"))
+							{
+								Log.e("KOOLJ_goto_", data_key[iiii][2].toString());
+								int i_labelhave = 0;
+								for (int i_label = 0; i_label< keyx_label_step; i_label++)
+								{
+									String valuex_target = valuex_label[i_label].toString();
+									if (valuex_target.equals(data_key[iiii][2].toString()))
+									{
+										i_labelhave = 1;
+										iiii_label = Integer.parseInt(keyx_label[i_label]);	
+										iiii = iiii_label;										
+										break;										
+									}	
+									
+								}
 
+							}
+							
 						}				
 					}		
-					try 
-					{
-						outputReport[0][0]=KOOLJ_log;
-						WE(outputReport, output_xls);
-					} catch (WriteException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+
 				}
 			
 			}
@@ -167,35 +396,77 @@ public class KoolJ_datadriven {
 	
 //Define Robotium keyword	
 //===========================================================
+	public void solo_assertCurrentActivity (String message, Class expectedClass, Solo solo) {
+		
+		//solo.assertCurrentActivity(message, expectedClass);
+		Log.e("KOOLJ_assertCurrentActivity_", message);
+	}
 	public void solo_clickonbutton (String value, Solo solo){
 		if(value.equals("0")) 
 		{
 			int value_1=Integer.parseInt(value);
+			Log.e("KOOLJ_clickonbutton_", ""+value);
 			solo.clickOnButton(value_1);
 		} 
 		else if(value.equals("1")) 
 		{
 			int value_1=Integer.parseInt(value);
+			Log.e("KOOLJ_clickonbutton_", ""+value);
 			solo.clickOnButton(value_1);
 		} 
 		else if(value.equals("2")) 
 		{
 			int value_1=Integer.parseInt(value);
+			Log.e("KOOLJ_clickonbutton_", ""+value);
 			solo.clickOnButton(value_1);
 		}
 		else
 		{	
+			Log.e("KOOLJ_clickonbutton_", ""+value);
 			solo.clickOnButton(value);
 			
 		}
 	}
+	public void asl_screenshot (Float value1,  Float value2, Solo solo){
+		
+		//solo.clickOnScreen(value1,value2);
+		//ArrayList[] Act2Report = solo.getAllOpenedActivities();
+		//for (int i_act = 0; i_act < Act2Report.length; i_act++)
+		//{
+		//	Log.e("KoolJ_at", Act2Report[i_act].toString());
+		//}
+
+/*
+		Log.e("KoolJ_screenshot", "SHOT!");
+        String imageCapturedPath = ""; 
+        try {
+			if (RobotiumTest.aslProvider.isAvailable())
+			{
+				imageCapturedPath = RobotiumTest.aslProvider.takeScreenshot();
+			}
+			else
+			{
+				Log.e("KoolJ_ASL", "service isn't ready.");
+			}
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		finally {
+			Log.e("Kookj", "---------->" + imageCapturedPath);
+		}
+*/		
+        
+	}
 	public void solo_enterkey (int text, String value, Solo solo){
+		Log.e("KOOLJ_entertext_", value);
 		solo.enterText(text, value);
 	}
 	public void solo_screenshot (Solo solo){
 	
 	}
 	public void solo_back (Solo solo){
+		Log.e("KOOLJ_goback2_", "goBack");
 		solo.goBack();
 	}
 	public void solo_searchtext (String value, Solo solo){
@@ -205,10 +476,12 @@ public class KoolJ_datadriven {
 		KOOLJ_log=KOOLJ_log+"\n"+"SEARCH TEXT "+ "'" + value + "'" + " is "+value_actual;
 	}
 	public void solo_key (int value, Solo solo){
+		Log.e("KOOLJ_sendKey_", ""+value);
 		solo.sendKey(value);
 
 	}	
 	public void solo_sleep (int value, Solo solo){
+		Log.e("KOOLJ_sleep_", ""+value);
 		solo.sleep(value);
 		
 	}
@@ -244,7 +517,8 @@ public class KoolJ_datadriven {
 		HSSFWorkbook workbook; 
 		String[][] data = null; 
 		FileInputStream stream = null;
-		//Log.e("XLS____", DatatestExcel.toString());
+		Log.e("XLS_load", file_xls);
+		KOOLJ_log=KOOLJ_log+"\n"+"XLS_load" + file_xls;
 		try { 
 			stream = new FileInputStream(DatatestExcel); 
 			workbook = new HSSFWorkbook(stream); 
@@ -268,7 +542,7 @@ public class KoolJ_datadriven {
 		} 
 		catch (FileNotFoundException e) { 
 		// TODO Auto-generated catch block
-			Log.e("Catch_F_", e.fillInStackTrace().toString());
+			Log.e("XLS_notfound", e.fillInStackTrace().toString());
 			e.printStackTrace(); 
 		} 
 		catch (IOException e) { 
@@ -301,7 +575,8 @@ public class KoolJ_datadriven {
 			result = cell.getStringCellValue(); 
 			break; 
 			case HSSFCell.CELL_TYPE_FORMULA: // 2 
-			throw new RuntimeException("We can't evaluate formulas in Java"); 
+			result = cell.getStringCellValue(); 
+			//throw new RuntimeException("We can't evaluate formulas in Java"); 
 			case HSSFCell.CELL_TYPE_BLANK: // 3 
 			result = ""; 
 			break; 
@@ -316,18 +591,11 @@ public class KoolJ_datadriven {
 		return result.toString(); 
 	}
 
-	//Write to Excel
-	public void WE(String[][] args, String writeto_file) throws WriteException, IOException {
-		Log.e("KOOLJ_log", "DATA IS WRITTEN TO FILE");
-		WriteExcel test = new WriteExcel();
-		test.setOutputFile(writeto_file);
-		test.write(args);		
-	}
-	
 	//Download EXCEL file from HTTP into DCIM
 	public void URLfile(String urlfile, String download_file)
 	{
-		//Log.e("KOOLJ_URL: ", download_file);
+		Log.e("KOOLJ_downloading", download_file);
+		KOOLJ_log=KOOLJ_log+"\n"+"KOOLJ_downloading" + download_file;
 		try {
 	        //set the download URL (not including file), a url that points to a file on the internet
 	        URL url = new URL(urlfile);
@@ -398,7 +666,7 @@ public class KoolJ_datadriven {
 	private void updateProgress(int downloadedSize, int totalSize) {
 		String downprogress_var;
 		//Log.e("KOOLJ_loading...", Long.toString((downloadedSize/totalSize)*100)+"%");
-		KOOLJ_log=KOOLJ_log+"\n"+"Downloading file... "+Long.toString((downloadedSize/totalSize)*100)+"%"; 
+		KOOLJ_log=KOOLJ_log+"\n"+"Downloading status... "+Long.toString((downloadedSize/totalSize)*100)+"%"; 
 	} 
 		
 	//Building @Dataprovider named "DataTestMSSQL" from Microsoft SQL Server 
