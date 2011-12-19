@@ -122,7 +122,7 @@ public class KoolJ_datadriven {
 						String[] valueacce_for=new String[data_key.length];
 						String[] key_endfor=new String[data_key.length];
 
-
+						int for_count = 0;
 						int for_step = 0;
 						int for_step_backward = 0;						
 						int endfor_step = 0;
@@ -134,6 +134,9 @@ public class KoolJ_datadriven {
 						int varstore_kv_step = 0;
 						int varstore_step = 0;
 						int varstore_count = 0;
+						int key_stepstart = 0;
+						int key_stepend = 0;
+						int key_stepacc = 0;
 						
 						//Store LABEL if have
 						for (int iiii=iiii_label; iiii< data_key.length; iiii++)
@@ -162,8 +165,8 @@ public class KoolJ_datadriven {
 							if (key_target.equals("endfor"))
 							{
 								for_step_backward--;
-								key_endfor[endfor_step] = key_for[for_step_backward].toString();
-								endfor_step++;
+								key_endfor[for_step_backward] = ""+iiii;
+								
 								
 							}
 						}
@@ -172,7 +175,7 @@ public class KoolJ_datadriven {
 						for (int iiii=iiii_label; iiii< data_key.length; iiii++)
 						{
 							String key_target = data_key[iiii][1].toString();
-							if (key_target.equals("storevar"))
+							if (key_target.equals("store"))
 							{
 								varstore_count++;
 							}
@@ -183,41 +186,13 @@ public class KoolJ_datadriven {
 						for (int iiii=iiii_label; iiii< data_key.length; iiii++)
 						{
 							String key_target = data_key[iiii][1].toString();
-							if (key_target.equals("storevar"))
+							if (key_target.equals("store"))
 							{
 								varstore_kv[varstore_step][0] = data_key[iiii][2].toString();
 								varstore_kv[varstore_step][1] = data_key[iiii][3].toString();
 								varstore_step++;									
 							}
 						}
-						
-						//Search to change the STORE VAR if it is repeated
-						/*
-						for (int iiii=iiii_label; iiii< data_key.length; iiii++)
-						{
-							String key_target = data_key[iiii][1].toString();
-							if (key_target.equals("storevar"))
-							{
-								String var_temp = data_key[iiii][2].toString();
-								String var_temp3 = data_key[iiii][3].toString();
-								for (int ix = 0; ix< varstore_kv.length; ix++)
-								{
-									String var_temp2 = varstore_kv[ix][0].toString();
-									if (var_temp2.equals(var_temp))
-									{
-										for (int iz = 0; iz< varstore_kv.length; iz++)
-										{
-											if (!var_temp2.equals(var_temp3))
-											{
-												varstore_kv[ix][1] = data_key[iiii][3].toString();
-												break;
-											}	
-										}	
-									}
-								}
-							}
-						}
-						*/
 						
 						//Count IF..ENDIF if have
 						for (int iiii=iiii_label; iiii< data_key.length; iiii++)
@@ -237,47 +212,71 @@ public class KoolJ_datadriven {
 							}
 							else if(key_target.equals("for"))
 							{
-								//for (int i = 0; i< varstore_kv.length; i++)
-								//{
-									//duyet varstore_kv
-										//so sanh [i][0] voi data_key[iiii][3].toString()
-											// lay ra varstore_kv[i][1]
-									//duyet varstore_kv
-										//so sanh [i][0] voi data_key[iiii][4].toString()	
-											// lay ra varstore_kv[i][1]
-									//duyet varstore_kv
-										//so sanh [i][0] voi data_key[iiii][5].toString()
-											//// lay ra varstore_kv[i][1]
-											
-								//}
-							}
-							else if(key_target.equals("endfor"))
-							{
-								/*
-								if ( value_valuestart_for <= value_valueend_for)
+								int var_for = 0;
+								int i_stepstart = 0;
+								for (int i = 0; i< varstore_kv.length; i++)
 								{
-									value_valuestart_for = value_valuestart_for + value_valueacce_for;
-									for (int i = 0; i< valueend_for_yes.length; i++)
+									String var_temp = varstore_kv[i][0].toString();
+									if (var_temp.equals(data_key[iiii][2].toString()))
+									{									
+										key_stepstart = Integer.parseInt(varstore_kv[i][1].toString());
+										i_stepstart = i;
+										var_for++;
+									}
+									else if (var_temp.equals(data_key[iiii][4].toString()))
+									{									
+										key_stepend = Integer.parseInt(varstore_kv[i][1].toString());
+										var_for++;
+									}
+									else if (var_temp.equals(data_key[iiii][3].toString()))
+									{									
+										key_stepacc = Integer.parseInt(varstore_kv[i][1].toString());
+										var_for++;
+									}
+									else
 									{
-										int key_valueend_for_yes = Integer.parseInt(valueend_for_yes[i].toString());
-										if (key_valueend_for_yes == iiii)
+										if ( var_for > 2)
 										{
-											iiii_label = Integer.parseInt(valueend_for_yes[i].toString());
-											iiii = iiii_label;
 											break;
 										}
 									}
 								}
-								*/
+								
+								//Change step if logic on FOR..ENDFOR valid
+								//Log.e("KOOLJ_FOR1_", ""+var_for + "_" + key_stepstart+"_"+key_stepend+"_"+key_stepacc);
+								if ( var_for == 0)
+								{
+									iiii_label = Integer.parseInt(key_endfor[for_count]);	
+									iiii = iiii_label;
+								}
+								else
+								{
+									if ( key_stepstart <= key_stepend)
+									{	
+										iiii_label = Integer.parseInt(key_for[for_count]);	
+										iiii = iiii_label;	
+										key_stepstart = key_stepstart + key_stepacc;
+										varstore_kv[i_stepstart][1] = ""+key_stepstart;
+									}
+									else
+									{
+										iiii_label = Integer.parseInt(key_endfor[for_count]);	
+										iiii = iiii_label;
+									}	
+								}
+								for_count++;	
 							}
-							else if(key_target.equals("storevar"))
+							else if(key_target.equals("endfor"))
+							{
+								for_count--;
+								iiii_label = Integer.parseInt(key_for[for_count].toString());	
+								iiii = iiii_label - 1;	
+							}
+							else if(key_target.equals("store"))
 							{
 								//Search to change the VAR
-								/*
-								Log.e("KOOLJ_STEP" , "_________");
 								for (int iz = 0; iz< varstore_kv.length; iz++)
 								{
-									Log.e("KOOLJ_flow " , ""+iz);
 									String var_temp = varstore_kv[iz][0].toString();
 									if (var_temp.equals(data_key[iiii][2].toString()))
 									{
@@ -285,37 +284,42 @@ public class KoolJ_datadriven {
 										for (int ix = 0; ix< varstore_kv.length; ix++)
 										{
 											String var_temp2 = varstore_kv[ix][0].toString();
-											Log.e("KOOLJ_temp2 " , var_temp2);
-											Log.e("KOOLJ_datak3 " , data_key[iiii][3].toString());
 											if (var_temp2.equals(data_key[iiii][3].toString()))
 											{
 												var_temp3 = varstore_kv[ix][1].toString();
-												//varstore_kv[iz][1] = varstore_kv[ix][1].toString();
-												Log.e("KOOLJ_eq" + "_" + iz + " " + varstore_kv[iz][0].toString(), varstore_kv[iz][1].toString());
-												//break;
+												varstore_kv[iz][1] = varstore_kv[ix][1].toString();
+												break;
 											}
-											
+											else
+											{
+												varstore_kv[iz][1] = data_key[iiii][3].toString();
+											}
 										}
-										varstore_kv[iz][1] = var_temp3;
-									//break;
 									}
 									
 								}
-								*/
 							}	
-							else if(key_target.equals("tracevar"))
+							else if(key_target.equals("echo"))
 							{
-								/*
+								int var_echo = 0;
 								for (int i = 0; i< varstore_kv.length; i++)
 								{
 									String var_temp = varstore_kv[i][0].toString();
 									if (var_temp.equals(data_key[iiii][2].toString()))
 									{									
-										Log.e("KOOLJ_TRACE" + i + "_"+varstore_kv[i][0].toString(), varstore_kv[i][1].toString());
+										Log.e("KOOLJ_ECHO_" + varstore_kv[i][0].toString(), varstore_kv[i][1].toString());
 										break;
+										
+									}
+									else
+									{
+										var_echo++;
 									}
 								}
-								*/
+								if ( var_echo > 0)
+								{
+									Log.e("KOOLJ_ECHO_", data_key[iiii][2].toString());
+								}
 							}							
 							else if(key_target.equals("getCurrentActivity"))
 							{
@@ -668,5 +672,123 @@ public class KoolJ_datadriven {
 		//Log.e("KOOLJ_loading...", Long.toString((downloadedSize/totalSize)*100)+"%");
 		KOOLJ_log=KOOLJ_log+"\n"+"Downloading status... "+Long.toString((downloadedSize/totalSize)*100)+"%"; 
 	} 
+		
+	//Building @Dataprovider named "DataTestMSSQL" from Microsoft SQL Server 
+	//@BeforeTest
+	//@DataProvider(name = "DataTestMSSQL") 
+/*
+	public String [][] SQL_Data() 
+	{ 
+	int rowCount = 0; 
+	int columnCount = 0; 
+	String myData [][] = null; 
 
+	try 
+	{ 
+		//System.out.println("Successfully connected to KoolJ_MSSQL...");
+		Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver"); 
+		String url = "databaseName=internet_vn;integratedSecurity=false;selectMethod=direct"; 
+	
+		Connection con = DriverManager.getConnection("jdbc:sqlserver://svfpt04;"+url,"sa","sa"); 
+
+		// Execute the SQL statement 
+		//Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_UPDATABLE); 
+		Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
+		ResultSet resultSet = stmt.executeQuery("Select top 3 substring(ITEM_NO,1,4),substring(ITEM_NO,5,5) from Cop_sku");//("EXEC TestReplayData2 '20080109 08:00:00', '20080109 16:30:00'"); 
+		
+		
+		CallableStatement Proc_State=con.prepareCall("{ call TestReplayData2(?,?)}");
+		Proc_State.setString(1, "20080109 08:00:00");
+		Proc_State.setString(2, "20080109 16:30:00");
+		
+		// Get Column count 
+		ResultSetMetaData resultSet_metaData= resultSet.getMetaData(); 
+		columnCount = resultSet_metaData.getColumnCount(); 
+
+		// Get Row Count 
+		while( resultSet.next() ) 
+		rowCount++; 
+
+		//Initialize data structure 
+		myData = new String [rowCount][columnCount]; 
+
+		resultSet.beforeFirst(); 
+
+
+		//populate data structure 
+		for(int row=0; row<rowCount; row++) 
+		{ 
+			resultSet.next(); 
+			for(int col=1; col <=columnCount; col++) 
+			myData[row][col-1] = resultSet.getString(col); 
+			//System.out.println("");
+		} 
+		resultSet.close();
+        stmt.close();
+        con.close();
+	}
+	catch (Exception e) 
+	{ 
+		e.printStackTrace(); 
+	} 
+	return myData; 
+	}
+*/
+/*
+	//Building @Dataprovider named "DataTestMySQL" from MySQL 5.4 
+	//@BeforeTest 
+	//@DataProvider(name = "DataTestMySQL") 
+	public String [][] MySQL_Data() 
+	{
+	    Connection con = null;
+	    int rowCount = 0; 
+		int columnCount = 0;
+		String myData [][] = null; 
+	    try {
+	      Class.forName("com.mysql.jdbc.Driver").newInstance();
+	      con = DriverManager.getConnection("jdbc:mysql://localhost:3306/fso_timesheet","root","12345");
+
+	      if(!con.isClosed())
+	        System.out.println("Successfully connected to KoolJ_MySQL...");
+	      	Statement stmt = con.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
+	      	ResultSet resultSet = stmt.executeQuery("select * from add_new");
+	      	
+	      	ResultSetMetaData resultSet_metaData= resultSet.getMetaData(); 
+			columnCount = resultSet_metaData.getColumnCount(); 
+
+			// Get Row Count 
+			while( resultSet.next() ) 
+			rowCount++; 
+
+			//Initialize data structure 
+			myData = new String [rowCount][columnCount]; 
+			resultSet.beforeFirst(); 
+			
+			int col;
+			//populate data structure 
+			for(int row=0; row<rowCount; row++) 
+			{ 
+				resultSet.next(); 
+				for(col=1; col <=columnCount; col++) 
+				{
+					myData[row][col-1] = resultSet.getString(col); 
+					//System.out.println("DATA-------recordnumber--"+row+": "+myData[row][col-1]);
+				}
+			} 
+			
+			resultSet.close();
+	        stmt.close();
+	        con.close();
+	        
+	    } catch(Exception e) {
+	      System.err.println("Exception: " + e.getMessage());
+	    } finally {
+	      try {
+	        if(con != null)
+	          con.close();
+	      } catch(SQLException e) {}
+	    }
+	  	return myData; 
+	}
+*/	
 }
