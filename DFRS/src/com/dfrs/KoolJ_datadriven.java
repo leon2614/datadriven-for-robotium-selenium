@@ -25,6 +25,7 @@ import android.os.Environment;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
+import android.view.View;
 
 import com.jayway.android.robotium.solo.Solo;
 
@@ -51,7 +52,8 @@ public class KoolJ_datadriven {
 		Object[][] data_batch = CreateDataFromCSV(config_xls);
 
 		//check NULL data_batch
-		if (data_batch == null) {
+		if (data_batch == null) 
+		{
 			Log.e("KOOLJ_log", "DATA IS NULL");
 			KOOLJ_log=KOOLJ_log+"\n"+"DATA IS NULL";
 		}
@@ -121,8 +123,12 @@ public class KoolJ_datadriven {
 						String[] valueend_for=new String[data_key.length];
 						String[] valueacce_for=new String[data_key.length];
 						String[] key_endfor=new String[data_key.length];
+						String[] key_if=new String[data_key.length];
+						String[] key_endif=new String[data_key.length];
+						String[] key_else=new String[data_key.length];
 
 						int for_count = 0;
+						int for_count_backward = 0;
 						int for_step = 0;
 						int for_step_backward = 0;						
 						int endfor_step = 0;
@@ -137,17 +143,24 @@ public class KoolJ_datadriven {
 						int key_stepstart = 0;
 						int key_stepend = 0;
 						int key_stepacc = 0;
+						int if_step = 0;
+						int if_step_backward = 0;
+						int else_step_backward = 0;
+						int if_count = 0;
+						int if_count_backward = 0;
+						int if_logic = 0;
 						
+						String key_ifstart = "";
+						String key_ifend = "";
+												
 						//Store LABEL if have
 						for (int iiii=iiii_label; iiii< data_key.length; iiii++)
 						{
 							String key_target = data_key[iiii][1].toString();
 							if (key_target.equals("label"))
 							{
-								
 								keyx_label[keyx_label_step] = ""+iiii;
 								valuex_label[keyx_label_step] = data_key[iiii][2].toString();
-								
 								Log.e("KOOLJ_label_", data_key[iiii][2].toString());
 								keyx_label_step++;
 							}
@@ -166,8 +179,6 @@ public class KoolJ_datadriven {
 							{
 								for_step_backward--;
 								key_endfor[for_step_backward] = ""+iiii;
-								
-								
 							}
 						}
 						
@@ -193,12 +204,30 @@ public class KoolJ_datadriven {
 								varstore_step++;									
 							}
 						}
-						
-						//Count IF..ENDIF if have
+																				
+						//Count IF..ELSE..ENDIF if have
 						for (int iiii=iiii_label; iiii< data_key.length; iiii++)
 						{
-
+							String key_target = data_key[iiii][1].toString();
+							if (key_target.equals("if"))
+							{
+								key_if[if_step] = ""+iiii;
+								if_step++;
+								if_step_backward = if_step;
+								else_step_backward = if_step;
+							}
+							if (key_target.equals("endif"))
+							{
+								if_step_backward--;
+								key_endif[if_step_backward] = ""+iiii;
+							}	
+							if (key_target.equals("else"))
+							{
+								else_step_backward--;
+								key_else[else_step_backward] = ""+iiii;
+							}	
 						}
+						
 						//Run each KEY
 						for (int iiii=iiii_label; iiii< data_key.length; iiii++)
 						{
@@ -210,10 +239,203 @@ public class KoolJ_datadriven {
 								
 								solo_sleep(key_value, solo);
 							}
+							else if(key_target.equals("if"))
+							{
+								int var_if = 0;
+								int i_stepstart = 0;
+								String key_logic = "";
+								String var_temp = "";
+								for (int i = 0; i< varstore_kv.length; i++)
+								{
+									var_temp = varstore_kv[i][0].toString();
+									key_logic = data_key[iiii][3].toString();
+									if (var_temp.equals(data_key[iiii][2].toString()))
+									{									
+										key_ifstart = varstore_kv[i][1].toString();
+										i_stepstart = i;
+										var_if++;
+									}
+									else if (var_temp.equals(data_key[iiii][4].toString()))
+									{									
+										key_ifend = varstore_kv[i][1].toString();
+										var_if++;
+									}
+									else
+									{
+										if ( var_if > 1)
+										{
+											break;
+										}
+									}
+								}
+								//Change step if logic on IF..ENDIF valid
+								if ( var_if == 0)
+								{
+									//go to ENDIF
+									iiii_label = Integer.parseInt(key_endif[if_count]);	
+									iiii = iiii_label;
+								}
+								else
+								{
+									//validate each logic parameters
+									int var_key_ifstart = 0;
+									int var_key_ifend = 0;
+									
+									if ( key_logic.equals("''="))
+									{	
+										if (!key_ifstart.equals(key_ifend))
+										{
+											if_logic = 1;
+											if (!key_else[if_count].equals(null))
+											{
+												iiii_label = Integer.parseInt(key_else[if_count]);	
+												iiii = iiii_label;
+											}
+											else
+											{
+												iiii_label = Integer.parseInt(key_endif[if_count]);	
+												iiii = iiii_label;												
+											}	
+										}
+										else
+										{
+											if_logic = 0;												
+										}											
+									}
+									else if ( key_logic.equals("#"))
+									{
+										if (key_ifstart.equals(key_ifend))
+										{
+											if_logic = 1;
+											if (!key_else[if_count].equals(null))
+											{
+												iiii_label = Integer.parseInt(key_else[if_count]);	
+												iiii = iiii_label;
+											}
+											else
+											{
+												iiii_label = Integer.parseInt(key_endif[if_count]);	
+												iiii = iiii_label;	
+											}
+										}
+										else
+										{
+											if_logic = 0;
+										}	
+									}
+									else if ( key_logic.equals(">"))
+									{
+										var_key_ifstart = Integer.parseInt(key_ifstart);
+										var_key_ifend = Integer.parseInt(key_ifend);
+										if (var_key_ifstart < var_key_ifend)
+										{
+											if_logic = 1;
+											if (!key_else[if_count].equals(null))
+											{
+												iiii_label = Integer.parseInt(key_else[if_count]);	
+												iiii = iiii_label;
+											}
+											else
+											{
+												iiii_label = Integer.parseInt(key_endif[if_count]);	
+												iiii = iiii_label;												
+											}	
+										}
+										else
+										{
+											if_logic = 0;
+										}
+									}
+									else if ( key_logic.equals("<"))
+									{
+										var_key_ifstart = Integer.parseInt(key_ifstart);
+										var_key_ifend = Integer.parseInt(key_ifend);
+										if (var_key_ifstart > var_key_ifend)
+										{
+											if_logic = 1;
+											if (!key_else[if_count].equals(null))
+											{
+												iiii_label = Integer.parseInt(key_else[if_count]);	
+												iiii = iiii_label;
+											}
+											else
+											{
+												iiii_label = Integer.parseInt(key_endif[if_count]);	
+												iiii = iiii_label;												
+											}	
+										}
+										else
+										{
+											if_logic = 0;
+										}
+									}
+									else if ( key_logic.equals("<="))
+									{
+										var_key_ifstart = Integer.parseInt(key_ifstart);
+										var_key_ifend = Integer.parseInt(key_ifend);
+										if (var_key_ifstart > var_key_ifend)
+										{
+											if_logic = 1;
+											if (!key_else[if_count].equals(null))
+											{
+												iiii_label = Integer.parseInt(key_else[if_count]);	
+												iiii = iiii_label;
+											}
+											else
+											{
+												iiii_label = Integer.parseInt(key_endif[if_count]);	
+												iiii = iiii_label;												
+											}	
+										}
+										else
+										{
+											if_logic = 0;
+										}
+									}
+									else if ( key_logic.equals(">="))
+									{
+										var_key_ifstart = Integer.parseInt(key_ifstart);
+										var_key_ifend = Integer.parseInt(key_ifend);
+										if (var_key_ifstart < var_key_ifend)
+										{
+											if_logic = 1;
+											if (!key_else[if_count].equals(null))
+											{
+												iiii_label = Integer.parseInt(key_else[if_count]);	
+												iiii = iiii_label;
+											}
+											else
+											{
+												iiii_label = Integer.parseInt(key_endif[if_count]);	
+												iiii = iiii_label;												
+											}	
+										}
+										else
+										{
+											if_logic = 0;
+										}
+									}
+									else
+									{
+										iiii_label = Integer.parseInt(key_endif[if_count]);	
+										iiii = iiii_label;
+									}
+								}
+								if_count++;	
+							}
+							else if(key_target.equals("else"))
+							{	
+								if (if_logic == 0)
+								{
+									iiii_label = Integer.parseInt(key_endif[if_count]);	
+									iiii = iiii_label;
+								}	
+							}
 							else if(key_target.equals("for"))
 							{
 								int var_for = 0;
 								int i_stepstart = 0;
+								//Get values and compare logic
 								for (int i = 0; i< varstore_kv.length; i++)
 								{
 									String var_temp = varstore_kv[i][0].toString();
@@ -243,9 +465,9 @@ public class KoolJ_datadriven {
 								}
 								
 								//Change step if logic on FOR..ENDFOR valid
-								//Log.e("KOOLJ_FOR1_", ""+var_for + "_" + key_stepstart+"_"+key_stepend+"_"+key_stepacc);
 								if ( var_for == 0)
 								{
+									//go to ENDFOR
 									iiii_label = Integer.parseInt(key_endfor[for_count]);	
 									iiii = iiii_label;
 								}
@@ -253,6 +475,7 @@ public class KoolJ_datadriven {
 								{
 									if ( key_stepstart <= key_stepend)
 									{	
+										//go to FOR
 										iiii_label = Integer.parseInt(key_for[for_count]);	
 										iiii = iiii_label;	
 										key_stepstart = key_stepstart + key_stepacc;
@@ -260,16 +483,18 @@ public class KoolJ_datadriven {
 									}
 									else
 									{
+										//go to ENDFOR
 										iiii_label = Integer.parseInt(key_endfor[for_count]);	
 										iiii = iiii_label;
 									}	
 								}
 								for_count++;	
+								for_count_backward = for_count;
 							}
 							else if(key_target.equals("endfor"))
 							{
-								for_count--;
-								iiii_label = Integer.parseInt(key_for[for_count].toString());	
+								for_count_backward--;
+								iiii_label = Integer.parseInt(key_for[for_count_backward].toString());	
 								iiii = iiii_label - 1;	
 							}
 							else if(key_target.equals("store"))
@@ -301,7 +526,6 @@ public class KoolJ_datadriven {
 							}	
 							else if(key_target.equals("echo"))
 							{
-								int var_echo = 0;
 								for (int i = 0; i< varstore_kv.length; i++)
 								{
 									String var_temp = varstore_kv[i][0].toString();
@@ -311,14 +535,6 @@ public class KoolJ_datadriven {
 										break;
 										
 									}
-									else
-									{
-										var_echo++;
-									}
-								}
-								if ( var_echo > 0)
-								{
-									Log.e("KOOLJ_ECHO_", data_key[iiii][2].toString());
 								}
 							}							
 							else if(key_target.equals("getCurrentActivity"))
@@ -328,10 +544,8 @@ public class KoolJ_datadriven {
 							}
 							else if(key_target.equals("screenshot"))
 							{
-								//Float key_value1 = Float.valueOf(data_key[iiii][2].toString());
-								//Float key_value2 = Float.valueOf(data_key[iiii][3].toString());
-								//asl_screenshot(key_value1, key_value2, solo);
-								
+								String key_value = data_key[iiii][2].toString();
+								solo_screenshot(solo, key_value);
 							}
 							else if(key_target.equals("sendKey"))
 							{
@@ -405,7 +619,8 @@ public class KoolJ_datadriven {
 		//solo.assertCurrentActivity(message, expectedClass);
 		Log.e("KOOLJ_assertCurrentActivity_", message);
 	}
-	public void solo_clickonbutton (String value, Solo solo){
+	public void solo_clickonbutton (String value, Solo solo)
+	{
 		if(value.equals("0")) 
 		{
 			int value_1=Integer.parseInt(value);
@@ -431,43 +646,21 @@ public class KoolJ_datadriven {
 			
 		}
 	}
-	public void asl_screenshot (Float value1,  Float value2, Solo solo){
-		
-		//solo.clickOnScreen(value1,value2);
-		//ArrayList[] Act2Report = solo.getAllOpenedActivities();
-		//for (int i_act = 0; i_act < Act2Report.length; i_act++)
-		//{
-		//	Log.e("KoolJ_at", Act2Report[i_act].toString());
-		//}
-
-/*
-		Log.e("KoolJ_screenshot", "SHOT!");
-        String imageCapturedPath = ""; 
-        try {
-			if (RobotiumTest.aslProvider.isAvailable())
-			{
-				imageCapturedPath = RobotiumTest.aslProvider.takeScreenshot();
-			}
-			else
-			{
-				Log.e("KoolJ_ASL", "service isn't ready.");
-			}
-		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		finally {
-			Log.e("Kookj", "---------->" + imageCapturedPath);
-		}
-*/		
-        
-	}
-	public void solo_enterkey (int text, String value, Solo solo){
+    public void solo_enterkey (int text, String value, Solo solo){
 		Log.e("KOOLJ_entertext_", value);
 		solo.enterText(text, value);
 	}
-	public void solo_screenshot (Solo solo){
-	
+	public void solo_screenshot (Solo solo, String name){
+		Screenshot takeSS = new Screenshot();
+		try 
+		{
+			Log.e("KoolJ_getScreenshot", name);
+			takeSS.takeScreenShot(solo.getViews().get(0), name);
+		}
+		catch (Exception e) 
+		{
+			Log.e("KoolJ_errorScreenshot", e.getMessage());
+		}
 	}
 	public void solo_back (Solo solo){
 		Log.e("KOOLJ_goback2_", "goBack");
@@ -486,8 +679,12 @@ public class KoolJ_datadriven {
 	}	
 	public void solo_sleep (int value, Solo solo){
 		Log.e("KOOLJ_sleep_", ""+value);
+		//dat moc trc
+		long starttime = System.currentTimeMillis();
 		solo.sleep(value);
-		
+		long endtime = System.currentTimeMillis();
+		long elapsedtime = (endtime - starttime)/1000;
+		Log.e("KOOLJ_elapsedtime_", ""+elapsedtime);
 	}
 	
 //===========================================================
