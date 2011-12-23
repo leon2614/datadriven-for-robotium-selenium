@@ -37,6 +37,7 @@ public class KoolJ_datadriven {
 	String batch_xls;
 	String config_xls;
 	String KOOLJ_log;
+	String project_folder = "";
 	String[][] outputReport;
 	Object[][] data_suite;
 	Object[][] data_test;
@@ -45,55 +46,72 @@ public class KoolJ_datadriven {
 	int read_first = 1;
 	int file_download_done = 0;
 	
+	long starttime = 0;
+	long endtime = 0;
+	long elapsedtime = 0;	
 	
 	
 	//Open CONFIG to BATCH,SUITE,TEST files
-	public void openconfig(String config_xls, String output_xls, Solo solo){
+	public void openconfig(String config_xls, Solo solo){
 		Object[][] data_batch = CreateDataFromCSV(config_xls);
 
 		//check NULL data_batch
 		if (data_batch == null) 
 		{
-			Log.e("KOOLJ_log", "DATA IS NULL");
-			KOOLJ_log=KOOLJ_log+"\n"+"DATA IS NULL";
+			Log.e("KOOLJ_log", "DATA IS NOT AVAIL");
+			//KOOLJ_log=KOOLJ_log+"\n"+"DATA IS NULL";
 		}
 		else
 		{
 			Log.e("KOOLJ_log", "DATA IS AVAIL");
-			KOOLJ_log=KOOLJ_log+"\n"+"DATA IS AVAIL";
+
+			//Get project folder
+			if (data_batch[1][0].toString().equals("project_folder"))
+			{
+				project_folder = data_batch[1][1].toString();
+			}
+			else 
+			{
+				Log.e("KOOLJ_log", "THERE IS NO PROJECT FOLDER");
+			}	
 			
 			//if files from HTTP, download them
-			file_download_done = 1;
-			data_url_batch = CreateDataFromCSV("/url_batch.xls");
-			for (int i_d=1; i_d< data_url_batch.length; i_d++)
-			{					
-				if (data_url_batch[0][1].toString().equals("yes"))
-				{
-					URLfile(data_url_batch[i_d][1].toString(),data_url_batch[i_d][0].toString());
+			if (!project_folder.equals(""))
+			{
+				file_download_done = 1;
+				data_url_batch = CreateDataFromCSV("/url_batch.xls");
+				for (int i_d=0; i_d< data_url_batch.length; i_d++)
+				{					
+					if (data_url_batch[i_d][1].toString().equals("yes"))
+					{
+						URLfile(data_url_batch[i_d][2].toString(),data_url_batch[i_d][0].toString());
+					}
+					else 
+					{
+						file_download_done = 3;
+					}	
+					
 				}
-				else 
-				{
-					file_download_done = 3;
-				}	
-				
 			}
-				
-			//Find to run BATCH	
-			for (int i=0; i< data_batch.length; i++)
+			else
 			{	
+				Log.e("KOOLJ_log", "THERE IS NO PROJECT FOLDER");
+			}	
+			//Find to run BATCH	
+			if (!project_folder.equals(""))
+			{
 				if (file_download_done > 1)
 				{
-					//When downloading done, read files
-					if (data_batch[i][0].equals("xls_batch_url")) 
-					{
-						//Find to run SUITE
-						String data_suite_var="/" + data_batch[i][1].toString() + ".xls";
-						KOOLJ_log=KOOLJ_log+"\n"+"RUN BATCH: "+ data_suite_var;
-						Log.e("KOOLJ_BATCH: ", data_suite_var);
-						data_suite = CreateDataFromCSV(data_suite_var);
-						break;
-					}
+					//Find to run SUITE
+					String data_suite_var="/batch.xls";
+					//KOOLJ_log=KOOLJ_log+"\n"+"RUN BATCH: "+ data_suite_var;
+					Log.e("KOOLJ_BATCH: ", data_suite_var);
+					data_suite = CreateDataFromCSV(data_suite_var);
 				}
+			}
+			else
+			{	
+				Log.e("KOOLJ_log", "THERE IS NO PROJECT FOLDER");
 			}
 			
 			//Find to run TEST
@@ -103,7 +121,7 @@ public class KoolJ_datadriven {
 				{
 					
 					String data_test_var="/" + data_suite[ii][0].toString() + ".xls";
-					KOOLJ_log=KOOLJ_log+"\n"+"RUN SUITE:______ "+ data_test_var;
+					//KOOLJ_log=KOOLJ_log+"\n"+"RUN SUITE:______ "+ data_test_var;
 					Log.e("KOOLJ_SUITE_"+ii+": ", data_test_var);
 					data_test = CreateDataFromCSV(data_test_var);
 					
@@ -149,6 +167,7 @@ public class KoolJ_datadriven {
 						int if_count = 0;
 						int if_count_backward = 0;
 						int if_logic = 0;
+						int if_located = 0;
 						
 						String key_ifstart = "";
 						String key_ifend = "";
@@ -211,20 +230,27 @@ public class KoolJ_datadriven {
 							String key_target = data_key[iiii][1].toString();
 							if (key_target.equals("if"))
 							{
-								key_if[if_step] = ""+iiii;
+								if_located = iiii;
+								key_if[if_step] = ""+if_located;
+								//Log.e("KOOLJ_if_", key_if[if_step]);
 								if_step++;
 								if_step_backward = if_step;
 								else_step_backward = if_step;
+								
 							}
-							if (key_target.equals("endif"))
+							else if (key_target.equals("endif"))
 							{
+								if_located = iiii;
 								if_step_backward--;
-								key_endif[if_step_backward] = ""+iiii;
+								key_endif[if_step_backward] = ""+if_located;
+								//Log.e("KOOLJ_end_", key_endif[if_step_backward]);
 							}	
-							if (key_target.equals("else"))
+							else if (key_target.equals("else"))
 							{
+								if_located = iiii;
 								else_step_backward--;
-								key_else[else_step_backward] = ""+iiii;
+								key_else[else_step_backward] = ""+if_located;
+								//Log.e("KOOLJ_else_", key_else[else_step_backward] );
 							}	
 						}
 						
@@ -268,12 +294,138 @@ public class KoolJ_datadriven {
 										}
 									}
 								}
+								
 								//Change step if logic on IF..ENDIF valid
 								if ( var_if == 0)
 								{
-									//go to ENDIF
-									iiii_label = Integer.parseInt(key_endif[if_count]);	
-									iiii = iiii_label;
+									String key_wait = data_key[iiii][2].toString();
+									String key_waitval1 = "0";
+									String key_waitval2 = "0";
+									String key_waitval3 = "0";
+									if (key_wait.equals("waitForActivity"))
+									{
+										int key_waitval2_var = Integer.parseInt(key_waitval2);
+										key_waitval1 = data_key[iiii][3].toString();
+										key_waitval2 = data_key[iiii][4].toString();
+										if (solo_waitForActivity(key_waitval1, key_waitval2_var, solo))
+										{
+											if_logic = 0;
+										}
+										else
+										{
+											if_logic = 1;
+											if (!key_else[if_count].equals(null))
+											{
+												iiii_label = Integer.parseInt(key_else[if_count]);	
+												iiii = iiii_label;
+											}
+											else
+											{
+												iiii_label = Integer.parseInt(key_endif[if_count]);	
+												iiii = iiii_label;												
+											}
+										}
+									}
+									else if (key_wait.equals("waitForView"))
+									{
+										key_waitval2 = data_key[iiii][4].toString();
+										int key_waitval2_var = Integer.parseInt(key_waitval2);
+										key_waitval1 = data_key[iiii][3].toString();
+										if (solo_waitForView(key_waitval1, key_waitval2_var, solo))
+										{
+											if_logic = 0;
+										}
+										else
+										{
+											if_logic = 1;
+											if (!key_else[if_count].equals(null))
+											{
+												iiii_label = Integer.parseInt(key_else[if_count]);	
+												iiii = iiii_label;
+											}
+											else
+											{
+												iiii_label = Integer.parseInt(key_endif[if_count]);	
+												iiii = iiii_label;												
+											}
+										}
+									}
+									else if (key_wait.equals("waitForText"))
+									{
+										key_waitval1 = data_key[iiii][3].toString();
+										key_waitval2 = data_key[iiii][4].toString();
+										key_waitval3 = data_key[iiii][5].toString();
+										int key_waitval2_var = Integer.parseInt(key_waitval2);
+										long key_waitval3_var = Long.valueOf(key_waitval3);
+										if (solo_waitForText(key_waitval1, key_waitval2_var, key_waitval3_var , solo))
+										{
+											if_logic = 0;
+										}
+										else
+										{
+											if_logic = 1;
+											if (!key_else[if_count].equals(null))
+											{
+												iiii_label = Integer.parseInt(key_else[if_count]);	
+												iiii = iiii_label;
+											}
+											else
+											{
+												iiii_label = Integer.parseInt(key_endif[if_count]);	
+												iiii = iiii_label;												
+											}
+										}
+									}
+									else if (key_wait.equals("waitForDialogToClose"))
+									{
+										long key_waitval1_var = Long.valueOf(key_waitval1);
+										if (solo_waitForDialogToClose (key_waitval1_var, solo))
+										{
+											if_logic = 0;
+										}
+										else
+										{
+											if_logic = 1;
+											if (!key_else[if_count].equals(null))
+											{
+												iiii_label = Integer.parseInt(key_else[if_count]);	
+												iiii = iiii_label;
+											}
+											else
+											{
+												iiii_label = Integer.parseInt(key_endif[if_count]);	
+												iiii = iiii_label;												
+											}
+										}
+									}
+									else if (key_wait.equals("searchText"))
+									{
+										if (solo_searchtext(key_waitval1, solo))
+										{
+											if_logic = 0;
+										}
+										else
+										{
+											if_logic = 1;
+											if (!key_else[if_count].equals(null))
+											{
+												iiii_label = Integer.parseInt(key_else[if_count]);	
+												iiii = iiii_label;
+											}
+											else
+											{
+												iiii_label = Integer.parseInt(key_endif[if_count]);	
+												iiii = iiii_label;												
+											}
+										}
+									}
+									else
+									{
+										//go to ENDIF
+										if_logic = 1;
+										iiii_label = Integer.parseInt(key_endif[if_count]);	
+										iiii = iiii_label;
+									}	
 								}
 								else
 								{
@@ -422,14 +574,16 @@ public class KoolJ_datadriven {
 									}
 								}
 								if_count++;	
+								if_count_backward = if_count;
 							}
 							else if(key_target.equals("else"))
 							{	
+								if_count_backward--;
 								if (if_logic == 0)
 								{
-									iiii_label = Integer.parseInt(key_endif[if_count]);	
+									iiii_label = Integer.parseInt(key_endif[if_count_backward]);	
 									iiii = iiii_label;
-								}	
+								}
 							}
 							else if(key_target.equals("for"))
 							{
@@ -521,26 +675,29 @@ public class KoolJ_datadriven {
 											}
 										}
 									}
-									
 								}
 							}	
 							else if(key_target.equals("echo"))
 							{
+								int echo_in = 0;
 								for (int i = 0; i< varstore_kv.length; i++)
 								{
 									String var_temp = varstore_kv[i][0].toString();
 									if (var_temp.equals(data_key[iiii][2].toString()))
 									{									
 										Log.e("KOOLJ_ECHO_" + varstore_kv[i][0].toString(), varstore_kv[i][1].toString());
+										echo_in = 1;
 										break;
-										
 									}
 								}
+								if (echo_in == 0)
+									Log.e("KOOLJ_ECHO_", data_key[iiii][2].toString());
 							}							
-							else if(key_target.equals("getCurrentActivity"))
+							else if(key_target.equals("waitForActivity"))
 							{
-								solo_assertCurrentActivity ("View current activity fail!", solo.getCurrentActivity().getClass(), solo);
-								
+								String key_value1 = data_key[iiii][2].toString();
+								int key_value2 = Integer.parseInt(data_key[iiii][3].toString());
+								solo_waitForActivity (key_value1, key_value2, solo);
 							}
 							else if(key_target.equals("screenshot"))
 							{
@@ -550,22 +707,15 @@ public class KoolJ_datadriven {
 							else if(key_target.equals("sendKey"))
 							{
 								int key_value = Integer.parseInt(data_key[iiii][2].toString());
-								
 								solo_key(key_value, solo);
-								
 							}
 							else if (key_target.equals("searchText"))
 							{
-								
 								solo_searchtext(data_key[iiii][2].toString(), solo);
-								
 							}
 							else if (key_target.equals("goBack"))
 							{
-								
 								solo_back(solo);
-								
-								
 							}
 							else if (key_target.equals("enterText"))
 							{
@@ -576,9 +726,7 @@ public class KoolJ_datadriven {
 							{
 								
 								solo_clickonbutton(data_key[iiii][2].toString(), solo);
-								
 							}
-							
 							else if (key_target.equals("goto"))
 							{
 								Log.e("KOOLJ_goto_", data_key[iiii][2].toString());
@@ -593,11 +741,28 @@ public class KoolJ_datadriven {
 										iiii = iiii_label;										
 										break;										
 									}	
-									
 								}
-
 							}
-							
+							else if(key_target.equals("waitForDialogToClose"))
+							{
+								long key_value = Long.valueOf(data_key[iiii][3].toString());
+								solo_waitForDialogToClose (key_value, solo);
+								
+							}
+							else if(key_target.equals("waitForText"))
+							{
+								String key_text = data_key[iiii][2].toString();
+								int key_minimumNumberOfMatches = Integer.parseInt(data_key[iiii][3].toString());
+								long key_timeout = Long.valueOf(data_key[iiii][4].toString());
+								solo_waitForText (key_text, key_minimumNumberOfMatches, key_timeout , solo);
+								
+							}
+							else if(key_target.equals("waitForView"))
+							{
+								String key_view = data_key[iiii][2].toString();
+								int key_timeout = Integer.parseInt(data_key[iiii][3].toString());
+								solo_waitForView (key_view, key_timeout, solo);
+							}
 						}				
 					}		
 
@@ -612,12 +777,59 @@ public class KoolJ_datadriven {
 		}
 	}
 	
-//Define Robotium keyword	
+//Define Robotium keywords
 //===========================================================
-	public void solo_assertCurrentActivity (String message, Class expectedClass, Solo solo) {
-		
-		//solo.assertCurrentActivity(message, expectedClass);
-		Log.e("KOOLJ_assertCurrentActivity_", message);
+	public boolean solo_waitForView (String view, int timeout, Solo solo) {
+		Object[] view_arr = solo.getCurrentViews().toArray();
+		boolean waitForView_status =  false;
+		for (int i = 0; i < view_arr.length; i++ )
+		{
+			String current_view = view_arr[i].toString();
+			if (current_view.equals(view))
+			{
+				Log.e("KOOLJ_waitForView_"+solo.getCurrentViews().get(i), ""+timeout);
+				starttime = System.currentTimeMillis();
+				waitForView_status =  solo.waitForView(solo.getViews().get(i), timeout, true);
+				endtime = System.currentTimeMillis();
+				elapsedtime = (endtime - starttime)/1000;
+				break;
+			}
+		}
+		return waitForView_status;
+	}
+	public boolean solo_waitForText (String text, int minimumNumberOfMatches,long timeout, Solo solo) {
+		starttime = System.currentTimeMillis();
+		boolean waitForText_status =  solo.waitForText(text, minimumNumberOfMatches, timeout, true);
+		endtime = System.currentTimeMillis();
+		elapsedtime = (endtime - starttime)/1000;
+		Log.e("KOOLJ_waitForText_"+text, ""+timeout);
+		return waitForText_status;
+	}
+	public boolean solo_waitForDialogToClose (long timeout, Solo solo) {
+		starttime = System.currentTimeMillis();
+		boolean waitForDialogToClose_status =  solo.waitForDialogToClose(timeout);
+		endtime = System.currentTimeMillis();
+		elapsedtime = (endtime - starttime)/1000;
+		Log.e("KOOLJ_waitForDialogToClose_", ""+timeout);
+		return waitForDialogToClose_status;
+	}
+	public boolean solo_waitForActivity (String name, int timeout, Solo solo) {
+		Object[] activity_arr = solo.getAllOpenedActivities().toArray();
+		boolean waitForActivity_status =  false;
+		for (int i = 0; i < activity_arr.length; i++ )
+		{
+			String current_activity = activity_arr[i].toString();
+			if (current_activity.equals(name))
+			{
+				Log.e("KOOLJ_waitForActivity_"+solo.getAllOpenedActivities().get(i), ""+timeout);
+				starttime = System.currentTimeMillis();
+				waitForActivity_status =  solo.waitForActivity(name, timeout);
+				endtime = System.currentTimeMillis();
+				elapsedtime = (endtime - starttime)/1000;
+				break;
+			}
+		}
+		return waitForActivity_status;
 	}
 	public void solo_clickonbutton (String value, Solo solo)
 	{
@@ -625,37 +837,55 @@ public class KoolJ_datadriven {
 		{
 			int value_1=Integer.parseInt(value);
 			Log.e("KOOLJ_clickonbutton_", ""+value);
+			starttime = System.currentTimeMillis();
 			solo.clickOnButton(value_1);
+			endtime = System.currentTimeMillis();
+			elapsedtime = (endtime - starttime)/1000;
 		} 
 		else if(value.equals("1")) 
 		{
 			int value_1=Integer.parseInt(value);
 			Log.e("KOOLJ_clickonbutton_", ""+value);
+			starttime = System.currentTimeMillis();
 			solo.clickOnButton(value_1);
+			endtime = System.currentTimeMillis();
+			elapsedtime = (endtime - starttime)/1000;
 		} 
 		else if(value.equals("2")) 
 		{
 			int value_1=Integer.parseInt(value);
 			Log.e("KOOLJ_clickonbutton_", ""+value);
+			starttime = System.currentTimeMillis();
 			solo.clickOnButton(value_1);
+			endtime = System.currentTimeMillis();
+			elapsedtime = (endtime - starttime)/1000;
 		}
 		else
 		{	
 			Log.e("KOOLJ_clickonbutton_", ""+value);
+			starttime = System.currentTimeMillis();
 			solo.clickOnButton(value);
-			
+			endtime = System.currentTimeMillis();
+			elapsedtime = (endtime - starttime)/1000;
 		}
 	}
     public void solo_enterkey (int text, String value, Solo solo){
 		Log.e("KOOLJ_entertext_", value);
+		starttime = System.currentTimeMillis();
 		solo.enterText(text, value);
+		endtime = System.currentTimeMillis();
+		elapsedtime = (endtime - starttime)/1000;
 	}
 	public void solo_screenshot (Solo solo, String name){
+		starttime = System.currentTimeMillis();
 		Screenshot takeSS = new Screenshot();
 		try 
 		{
-			Log.e("KoolJ_getScreenshot", name);
+			Log.e("KoolJ_getScreenshot_"+solo.getViews().get(0), name);
+
 			takeSS.takeScreenShot(solo.getViews().get(0), name);
+			endtime = System.currentTimeMillis();
+			elapsedtime = (endtime - starttime)/1000;
 		}
 		catch (Exception e) 
 		{
@@ -664,29 +894,37 @@ public class KoolJ_datadriven {
 	}
 	public void solo_back (Solo solo){
 		Log.e("KOOLJ_goback2_", "goBack");
+		starttime = System.currentTimeMillis();
 		solo.goBack();
+		endtime = System.currentTimeMillis();
+		elapsedtime = (endtime - starttime)/1000;
 	}
-	public void solo_searchtext (String value, Solo solo){
+	public boolean solo_searchtext (String value, Solo solo){
 		boolean value_expected = true;
-		boolean value_actual = solo.searchText(value);
+		starttime = System.currentTimeMillis();
+		boolean value_actual = solo.searchText(value, 0, true, true);
+		endtime = System.currentTimeMillis();
+		elapsedtime = (endtime - starttime)/1000;
 		Log.e("KOOLJ_SEARCHTEXT: "+value, ""+value_actual);
-		KOOLJ_log=KOOLJ_log+"\n"+"SEARCH TEXT "+ "'" + value + "'" + " is "+value_actual;
+		//KOOLJ_log=KOOLJ_log+"\n"+"SEARCH TEXT "+ "'" + value + "'" + " is "+value_actual;
+		return value_actual;
 	}
 	public void solo_key (int value, Solo solo){
 		Log.e("KOOLJ_sendKey_", ""+value);
+		starttime = System.currentTimeMillis();
 		solo.sendKey(value);
-
+		endtime = System.currentTimeMillis();
+		elapsedtime = (endtime - starttime)/1000;
 	}	
 	public void solo_sleep (int value, Solo solo){
 		Log.e("KOOLJ_sleep_", ""+value);
-		//dat moc trc
-		long starttime = System.currentTimeMillis();
+		starttime = System.currentTimeMillis();
 		solo.sleep(value);
-		long endtime = System.currentTimeMillis();
-		long elapsedtime = (endtime - starttime)/1000;
-		Log.e("KOOLJ_elapsedtime_", ""+elapsedtime);
+		endtime = System.currentTimeMillis();
+		elapsedtime = (endtime - starttime)/1000;
+		//Log.e("KOOLJ_elapsedtime_", ""+elapsedtime);
 	}
-	
+
 //===========================================================
 	//Load EXCEL file
 	public Object[][] CreateDataFromCSV(String file_xls) { 
@@ -710,7 +948,15 @@ public class KoolJ_datadriven {
 		
 		//PATH
 		File rootsd = Environment.getExternalStorageDirectory();
-	    File dcim = new File(rootsd.getAbsolutePath() + "/DCIM/DFRS");
+		File dcim = new File(rootsd.getAbsolutePath() + "/DCIM/DFRS");
+	    if (file_xls.equals("/config.xls"))
+		{
+			dcim = new File(rootsd.getAbsolutePath() + "/DCIM/DFRS");
+		}
+		else
+		{
+			dcim = new File(rootsd.getAbsolutePath() + "/DCIM/DFRS/"+project_folder);
+		}
 		file_xls = dcim + file_xls;
 		
 		//Start to open to read file
@@ -719,7 +965,7 @@ public class KoolJ_datadriven {
 		String[][] data = null; 
 		FileInputStream stream = null;
 		Log.e("XLS_load", file_xls);
-		KOOLJ_log=KOOLJ_log+"\n"+"XLS_load" + file_xls;
+		//KOOLJ_log=KOOLJ_log+"\n"+"XLS_load" + file_xls;
 		try { 
 			stream = new FileInputStream(DatatestExcel); 
 			workbook = new HSSFWorkbook(stream); 
@@ -819,7 +1065,7 @@ public class KoolJ_datadriven {
 	        //create a new file, specifying the path, and the filename
 	        //which we want to save the file as.
 			//PATH
-		    File dcim = new File(SDCardRoot.getAbsolutePath() + "/DCIM/DFRS");
+		    File dcim = new File(SDCardRoot.getAbsolutePath() + "/DCIM/DFRS"+"/"+project_folder);
 	        File file = new File(dcim,download_file);
 
 	        //this will be used to write the downloaded data into the file we created

@@ -50,8 +50,8 @@ public class RobotiumTest extends ActivityInstrumentationTestCase2
 	{
 		
 		//Call config CSV file
-		KoolJ_datadriven Kjdriven=new KoolJ_datadriven();
-		Kjdriven.openconfig("/config.xls","/output.xls", solo);
+		KoolJ_datadriven KJdriven=new KoolJ_datadriven();
+		KJdriven.openconfig("/config.xls", solo);
 	}
 
 	@Override
