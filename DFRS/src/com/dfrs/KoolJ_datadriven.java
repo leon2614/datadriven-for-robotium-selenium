@@ -38,13 +38,15 @@ public class KoolJ_datadriven {
 	String config_xls;
 	String KOOLJ_log;
 	String project_folder = "";
-	String[][] outputReport;
+	String[][] outputReport = new String[100][2];
 	Object[][] data_suite;
 	Object[][] data_test;
 	Object[][] data_key;
 	Object[][] data_url_batch;
 	int read_first = 1;
 	int file_download_done = 0;
+	int outputReport_step1 = 0;
+	int outputReport_step2 = 0;
 	
 	long starttime = 0;
 	long endtime = 0;
@@ -59,12 +61,14 @@ public class KoolJ_datadriven {
 		if (data_batch == null) 
 		{
 			Log.e("KOOLJ_log", "DATA IS NOT AVAIL");
-			//KOOLJ_log=KOOLJ_log+"\n"+"DATA IS NULL";
+			excelreport("DATA IS NOT AVAIL","");
 		}
 		else
 		{
+			
 			Log.e("KOOLJ_log", "DATA IS AVAIL");
-
+			excelreport("DATA IS AVAIL","");
+			
 			//Get project folder
 			if (data_batch[1][0].toString().equals("project_folder"))
 			{
@@ -73,6 +77,7 @@ public class KoolJ_datadriven {
 			else 
 			{
 				Log.e("KOOLJ_log", "THERE IS NO PROJECT FOLDER");
+				excelreport("THERE IS NO PROJECT FOLDER","");
 			}	
 			
 			//if files from HTTP, download them
@@ -92,27 +97,21 @@ public class KoolJ_datadriven {
 					}	
 					
 				}
-			}
-			else
-			{	
-				Log.e("KOOLJ_log", "THERE IS NO PROJECT FOLDER");
-			}	
-			//Find to run BATCH	
-			if (!project_folder.equals(""))
-			{
 				if (file_download_done > 1)
 				{
 					//Find to run SUITE
 					String data_suite_var="/batch.xls";
 					//KOOLJ_log=KOOLJ_log+"\n"+"RUN BATCH: "+ data_suite_var;
 					Log.e("KOOLJ_BATCH: ", data_suite_var);
+					excelreport("LOG_BATCH: ",data_suite_var);
 					data_suite = CreateDataFromCSV(data_suite_var);
 				}
 			}
 			else
 			{	
 				Log.e("KOOLJ_log", "THERE IS NO PROJECT FOLDER");
-			}
+				excelreport("THERE IS NO PROJECT FOLDER","");
+			}	
 			
 			//Find to run TEST
 			if (file_download_done > 2)
@@ -123,6 +122,7 @@ public class KoolJ_datadriven {
 					String data_test_var="/" + data_suite[ii][0].toString() + ".xls";
 					//KOOLJ_log=KOOLJ_log+"\n"+"RUN SUITE:______ "+ data_test_var;
 					Log.e("KOOLJ_SUITE_"+ii+": ", data_test_var);
+					excelreport("LOG_SUITE_"+ii+": ", data_test_var);
 					data_test = CreateDataFromCSV(data_test_var);
 					
 					//Find to run KEY
@@ -131,6 +131,7 @@ public class KoolJ_datadriven {
 						String data_key_var="/" + data_test[iii][0].toString() + ".xls";
 						KOOLJ_log=KOOLJ_log+"\n"+"RUN TEST:______ "+ data_key_var;
 						Log.e("KOOLJ_TEST_"+iii+": ", data_key_var);
+						excelreport("LOG_TEST_"+iii+": ", data_key_var);
 						data_key = CreateDataFromCSV(data_key_var);
 						
 						//Run each KEY
@@ -168,6 +169,7 @@ public class KoolJ_datadriven {
 						int if_count_backward = 0;
 						int if_logic = 0;
 						int if_located = 0;
+						int validate_if = 0;
 						
 						String key_ifstart = "";
 						String key_ifend = "";
@@ -181,13 +183,11 @@ public class KoolJ_datadriven {
 								keyx_label[keyx_label_step] = ""+iiii;
 								valuex_label[keyx_label_step] = data_key[iiii][2].toString();
 								Log.e("KOOLJ_label_", data_key[iiii][2].toString());
+								excelreport("LOG_label_", data_key[iiii][2].toString());
 								keyx_label_step++;
 							}
-						}
-						//Count FOR..ENDFOR if have
-						for (int iiii=iiii_label; iiii< data_key.length; iiii++)
-						{
-							String key_target = data_key[iiii][1].toString();
+							
+							//Count FOR..ENDFOR if have
 							if (key_target.equals("for"))
 							{
 								key_for[for_step] = ""+iiii;
@@ -199,16 +199,37 @@ public class KoolJ_datadriven {
 								for_step_backward--;
 								key_endfor[for_step_backward] = ""+iiii;
 							}
-						}
-						
-						//Count STORE
-						for (int iiii=iiii_label; iiii< data_key.length; iiii++)
-						{
-							String key_target = data_key[iiii][1].toString();
+							
+							//Count STORE
 							if (key_target.equals("store"))
 							{
 								varstore_count++;
 							}
+							
+							//Count IF..ELSE..ENDIF if have
+							if (key_target.equals("if"))
+							{
+								if_located = iiii;
+								key_if[if_step] = ""+if_located;
+								validate_if = if_step;
+								if_step++;
+								if_step_backward = if_step;
+								else_step_backward = if_step;
+								
+							}
+							else if (key_target.equals("endif"))
+							{
+								if_located = iiii;
+								if_step_backward--;
+								key_endif[if_step_backward] = ""+if_located;
+							}	
+							else if (key_target.equals("else"))
+							{
+								if_located = iiii;
+								else_step_backward--;
+								key_else[else_step_backward] = ""+if_located;
+							}
+							
 						}
 						
 						//Store values of STORE if have
@@ -223,37 +244,20 @@ public class KoolJ_datadriven {
 								varstore_step++;									
 							}
 						}
-																				
-						//Count IF..ELSE..ENDIF if have
-						for (int iiii=iiii_label; iiii< data_key.length; iiii++)
+						
+						//if FOR..ENDFOR is not correct, stop the test
+						if(for_step_backward != for_step )
 						{
-							String key_target = data_key[iiii][1].toString();
-							if (key_target.equals("if"))
-							{
-								if_located = iiii;
-								key_if[if_step] = ""+if_located;
-								//Log.e("KOOLJ_if_", key_if[if_step]);
-								if_step++;
-								if_step_backward = if_step;
-								else_step_backward = if_step;
-								
-							}
-							else if (key_target.equals("endif"))
-							{
-								if_located = iiii;
-								if_step_backward--;
-								key_endif[if_step_backward] = ""+if_located;
-								//Log.e("KOOLJ_end_", key_endif[if_step_backward]);
-							}	
-							else if (key_target.equals("else"))
-							{
-								if_located = iiii;
-								else_step_backward--;
-								key_else[else_step_backward] = ""+if_located;
-								//Log.e("KOOLJ_else_", key_else[else_step_backward] );
-							}	
+							excelreport("LOG_forendfor_", "FOR..ENDFOR IS NOT CORRECT!");
+							break;
 						}
 						
+						//if IF..ENDIF is not correct, stop the test
+						if(if_step_backward != validate_if)
+						{
+							excelreport("LOG_ifendif_", "IF..ENDIF IS NOT CORRECT!");
+							break;
+						}
 						//Run each KEY
 						for (int iiii=iiii_label; iiii< data_key.length; iiii++)
 						{
@@ -584,6 +588,7 @@ public class KoolJ_datadriven {
 									iiii_label = Integer.parseInt(key_endif[if_count_backward]);	
 									iiii = iiii_label;
 								}
+								
 							}
 							else if(key_target.equals("for"))
 							{
@@ -686,12 +691,14 @@ public class KoolJ_datadriven {
 									if (var_temp.equals(data_key[iiii][2].toString()))
 									{									
 										Log.e("KOOLJ_ECHO_" + varstore_kv[i][0].toString(), varstore_kv[i][1].toString());
+										excelreport("LOG_ECHO: "+ varstore_kv[i][0].toString()+"_is_"+varstore_kv[i][1].toString(),"");
 										echo_in = 1;
 										break;
 									}
 								}
 								if (echo_in == 0)
 									Log.e("KOOLJ_ECHO_", data_key[iiii][2].toString());
+									excelreport("LOG_ECHO: "+ data_key[iiii][2].toString(),"");
 							}							
 							else if(key_target.equals("waitForActivity"))
 							{
@@ -730,6 +737,7 @@ public class KoolJ_datadriven {
 							else if (key_target.equals("goto"))
 							{
 								Log.e("KOOLJ_goto_", data_key[iiii][2].toString());
+								excelreport("LOG_goto: "+data_key[iiii][2].toString(),"");
 								int i_labelhave = 0;
 								for (int i_label = 0; i_label< keyx_label_step; i_label++)
 								{
@@ -767,19 +775,21 @@ public class KoolJ_datadriven {
 					}		
 
 				}
-			
 			}
 			else
 			{
 				Log.e("KOOLJ_log", "There is no TEST to run");
+				excelreport("THERE IS NO TEST TO RUN","");
 			}
-
 		}
+		//Write report to Excel file
+		WriteToExcel(outputReport);	
 	}
 	
 //Define Robotium keywords
 //===========================================================
 	public boolean solo_waitForView (String view, int timeout, Solo solo) {
+		starttime = System.currentTimeMillis();
 		Object[] view_arr = solo.getCurrentViews().toArray();
 		boolean waitForView_status =  false;
 		for (int i = 0; i < view_arr.length; i++ )
@@ -788,32 +798,35 @@ public class KoolJ_datadriven {
 			if (current_view.equals(view))
 			{
 				Log.e("KOOLJ_waitForView_"+solo.getCurrentViews().get(i), ""+timeout);
-				starttime = System.currentTimeMillis();
 				waitForView_status =  solo.waitForView(solo.getViews().get(i), timeout, true);
-				endtime = System.currentTimeMillis();
-				elapsedtime = (endtime - starttime)/1000;
 				break;
 			}
 		}
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		excelreport("LOG_waitForView_"+view,""+elapsedtime);
 		return waitForView_status;
 	}
 	public boolean solo_waitForText (String text, int minimumNumberOfMatches,long timeout, Solo solo) {
 		starttime = System.currentTimeMillis();
 		boolean waitForText_status =  solo.waitForText(text, minimumNumberOfMatches, timeout, true);
 		endtime = System.currentTimeMillis();
-		elapsedtime = (endtime - starttime)/1000;
+		elapsedtime = endtime - starttime;
 		Log.e("KOOLJ_waitForText_"+text, ""+timeout);
+		excelreport("LOG_waitForText_"+text,""+elapsedtime);
 		return waitForText_status;
 	}
 	public boolean solo_waitForDialogToClose (long timeout, Solo solo) {
 		starttime = System.currentTimeMillis();
 		boolean waitForDialogToClose_status =  solo.waitForDialogToClose(timeout);
 		endtime = System.currentTimeMillis();
-		elapsedtime = (endtime - starttime)/1000;
+		elapsedtime = endtime - starttime;
 		Log.e("KOOLJ_waitForDialogToClose_", ""+timeout);
+		excelreport("LOG_waitForDialogToClose_",""+elapsedtime);
 		return waitForDialogToClose_status;
 	}
 	public boolean solo_waitForActivity (String name, int timeout, Solo solo) {
+		starttime = System.currentTimeMillis();
 		Object[] activity_arr = solo.getAllOpenedActivities().toArray();
 		boolean waitForActivity_status =  false;
 		for (int i = 0; i < activity_arr.length; i++ )
@@ -822,13 +835,13 @@ public class KoolJ_datadriven {
 			if (current_activity.equals(name))
 			{
 				Log.e("KOOLJ_waitForActivity_"+solo.getAllOpenedActivities().get(i), ""+timeout);
-				starttime = System.currentTimeMillis();
 				waitForActivity_status =  solo.waitForActivity(name, timeout);
-				endtime = System.currentTimeMillis();
-				elapsedtime = (endtime - starttime)/1000;
 				break;
 			}
 		}
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		excelreport("LOG_waitForActivity_"+name,""+elapsedtime);
 		return waitForActivity_status;
 	}
 	public void solo_clickonbutton (String value, Solo solo)
@@ -840,7 +853,8 @@ public class KoolJ_datadriven {
 			starttime = System.currentTimeMillis();
 			solo.clickOnButton(value_1);
 			endtime = System.currentTimeMillis();
-			elapsedtime = (endtime - starttime)/1000;
+			elapsedtime = endtime - starttime;
+			excelreport("LOG_clickonbutton_"+value,""+elapsedtime);
 		} 
 		else if(value.equals("1")) 
 		{
@@ -849,7 +863,8 @@ public class KoolJ_datadriven {
 			starttime = System.currentTimeMillis();
 			solo.clickOnButton(value_1);
 			endtime = System.currentTimeMillis();
-			elapsedtime = (endtime - starttime)/1000;
+			elapsedtime = endtime - starttime;
+			excelreport("LOG_clickonbutton_"+value,""+elapsedtime);
 		} 
 		else if(value.equals("2")) 
 		{
@@ -858,7 +873,8 @@ public class KoolJ_datadriven {
 			starttime = System.currentTimeMillis();
 			solo.clickOnButton(value_1);
 			endtime = System.currentTimeMillis();
-			elapsedtime = (endtime - starttime)/1000;
+			elapsedtime = endtime - starttime;
+			excelreport("LOG_clickonbutton_"+value,""+elapsedtime);
 		}
 		else
 		{	
@@ -866,7 +882,8 @@ public class KoolJ_datadriven {
 			starttime = System.currentTimeMillis();
 			solo.clickOnButton(value);
 			endtime = System.currentTimeMillis();
-			elapsedtime = (endtime - starttime)/1000;
+			elapsedtime = endtime - starttime;
+			excelreport("LOG_clickonbutton_"+value,""+elapsedtime);
 		}
 	}
     public void solo_enterkey (int text, String value, Solo solo){
@@ -874,39 +891,44 @@ public class KoolJ_datadriven {
 		starttime = System.currentTimeMillis();
 		solo.enterText(text, value);
 		endtime = System.currentTimeMillis();
-		elapsedtime = (endtime - starttime)/1000;
+		elapsedtime = endtime - starttime;
+		excelreport("LOG_entertext_"+value,""+elapsedtime);
 	}
 	public void solo_screenshot (Solo solo, String name){
 		starttime = System.currentTimeMillis();
 		Screenshot takeSS = new Screenshot();
 		try 
 		{
-			Log.e("KoolJ_getScreenshot_"+solo.getViews().get(0), name);
+			Log.e("KOOLJ_getScreenshot_"+solo.getViews().get(0), name);
 
-			takeSS.takeScreenShot(solo.getViews().get(0), name);
-			endtime = System.currentTimeMillis();
-			elapsedtime = (endtime - starttime)/1000;
+			takeSS.takeScreenShot(solo.getViews().get(0), name, project_folder);
+
 		}
 		catch (Exception e) 
 		{
 			Log.e("KoolJ_errorScreenshot", e.getMessage());
+			excelreport("LOG_errorScreenshot", e.getMessage());
 		}
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		excelreport("LOG_getScreenshot_"+ name,""+elapsedtime);
 	}
 	public void solo_back (Solo solo){
-		Log.e("KOOLJ_goback2_", "goBack");
+		Log.e("KOOLJ_goback_", "goBack");
 		starttime = System.currentTimeMillis();
 		solo.goBack();
 		endtime = System.currentTimeMillis();
-		elapsedtime = (endtime - starttime)/1000;
+		elapsedtime = endtime - starttime;
+		excelreport("LOG_goback_",""+elapsedtime);
 	}
 	public boolean solo_searchtext (String value, Solo solo){
 		boolean value_expected = true;
 		starttime = System.currentTimeMillis();
 		boolean value_actual = solo.searchText(value, 0, true, true);
 		endtime = System.currentTimeMillis();
-		elapsedtime = (endtime - starttime)/1000;
+		elapsedtime = endtime - starttime;
 		Log.e("KOOLJ_SEARCHTEXT: "+value, ""+value_actual);
-		//KOOLJ_log=KOOLJ_log+"\n"+"SEARCH TEXT "+ "'" + value + "'" + " is "+value_actual;
+		excelreport("LOG_SEARCHTEXT: " + value + "_returned_" + value_actual,""+elapsedtime);
 		return value_actual;
 	}
 	public void solo_key (int value, Solo solo){
@@ -914,15 +936,16 @@ public class KoolJ_datadriven {
 		starttime = System.currentTimeMillis();
 		solo.sendKey(value);
 		endtime = System.currentTimeMillis();
-		elapsedtime = (endtime - starttime)/1000;
+		elapsedtime = endtime - starttime;
+		excelreport("LOG_sendKey_"+value,""+elapsedtime);
 	}	
 	public void solo_sleep (int value, Solo solo){
 		Log.e("KOOLJ_sleep_", ""+value);
 		starttime = System.currentTimeMillis();
 		solo.sleep(value);
 		endtime = System.currentTimeMillis();
-		elapsedtime = (endtime - starttime)/1000;
-		//Log.e("KOOLJ_elapsedtime_", ""+elapsedtime);
+		elapsedtime = endtime - starttime;
+		excelreport("LOG_sleep_"+value,""+elapsedtime);
 	}
 
 //===========================================================
@@ -964,7 +987,8 @@ public class KoolJ_datadriven {
 		HSSFWorkbook workbook; 
 		String[][] data = null; 
 		FileInputStream stream = null;
-		Log.e("XLS_load", file_xls);
+		Log.e("KOOLJ_EXCELload", file_xls);
+		excelreport("LOG_EXCELload",file_xls);
 		//KOOLJ_log=KOOLJ_log+"\n"+"XLS_load" + file_xls;
 		try { 
 			stream = new FileInputStream(DatatestExcel); 
@@ -988,14 +1012,12 @@ public class KoolJ_datadriven {
 			} 
 		} 
 		catch (FileNotFoundException e) { 
-		// TODO Auto-generated catch block
-			Log.e("XLS_notfound", e.fillInStackTrace().toString());
-			e.printStackTrace(); 
+			excelreport("LOG_XLSnotfound",e.getMessage());
 		} 
 		catch (IOException e) { 
-		// TODO Auto-generated catch block 
 			Log.e("Catch_IO_", e.fillInStackTrace().toString());
-			e.printStackTrace(); 
+			excelreport("LOG_XLSopenning",e.getMessage());
+			
 		}
 		finally {
 			//close file
@@ -1003,8 +1025,8 @@ public class KoolJ_datadriven {
 				try {
 					stream.close();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
+					excelreport("LOG_XLSclosing",e.getMessage());
 				}
 			}
 		}
@@ -1042,6 +1064,7 @@ public class KoolJ_datadriven {
 	public void URLfile(String urlfile, String download_file)
 	{
 		Log.e("KOOLJ_downloading", download_file);
+		excelreport("LOG_downloading",download_file);
 		KOOLJ_log=KOOLJ_log+"\n"+"KOOLJ_downloading" + download_file;
 		try {
 	        //set the download URL (not including file), a url that points to a file on the internet
@@ -1105,17 +1128,59 @@ public class KoolJ_datadriven {
 		//catch some possible errors...
 		} catch (MalformedURLException e) {
 		        e.printStackTrace();
+				excelreport("LOG_malformedURL",e.getMessage());
+				
 		} catch (IOException e) {
 		        e.printStackTrace();
+				excelreport("LOG_ERRORDOWNLOADING",e.getMessage());
+				
 		}
 	}
 
 	private void updateProgress(int downloadedSize, int totalSize) {
 		String downprogress_var;
 		//Log.e("KOOLJ_loading...", Long.toString((downloadedSize/totalSize)*100)+"%");
-		KOOLJ_log=KOOLJ_log+"\n"+"Downloading status... "+Long.toString((downloadedSize/totalSize)*100)+"%"; 
+		//KOOLJ_log=KOOLJ_log+"\n"+"Downloading status... "+Long.toString((downloadedSize/totalSize)*100)+"%"; 
 	} 
+
+	public void WriteToExcel ( String [][] args ) {
+        File SDCardRoot = Environment.getExternalStorageDirectory();
+		File dcim = new File(SDCardRoot.getAbsolutePath() + "/DCIM/DFRS"+"/"+project_folder);
+		String fileName=dcim+"/output.xls";
+
+        HSSFWorkbook myWorkBook = new HSSFWorkbook();
+        HSSFSheet mySheet = myWorkBook.createSheet();
+        HSSFRow myRow = null;
+        HSSFCell myCell = null;
+ 
+        for (int rowNum = 0; rowNum < args.length; rowNum++){
+			myRow = mySheet.createRow(rowNum);
+            for (int cellNum = 0; cellNum < 2 ; cellNum++){
+				myCell = myRow.createCell(cellNum);
+                myCell.setCellValue(args[rowNum][cellNum]);      
+            }
+        }
+        try{
+			FileOutputStream out = new FileOutputStream(fileName);
+			myWorkBook.write(out);
+			Log.e("KOOLJ_writeout", "DONE");
+			excelreport("LOG_WRITTENTOEXCEL","");
+			out.close();
+        }catch(Exception e){ e.printStackTrace();}         
+    }
+	public void excelreport (String key, String value)
+	{
+		outputReport[outputReport_step1][outputReport_step2] = key;
+		outputReport_step2++;
+		outputReport[outputReport_step1][outputReport_step2] = value;
+		outputReport_step1++;
+		outputReport_step2--;
+	}
+	
 		
+	
+	
+	
 	//Building @Dataprovider named "DataTestMSSQL" from Microsoft SQL Server 
 	//@BeforeTest
 	//@DataProvider(name = "DataTestMSSQL") 

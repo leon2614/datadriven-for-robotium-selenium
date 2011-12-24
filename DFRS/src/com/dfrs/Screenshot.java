@@ -12,14 +12,14 @@ public class Screenshot {
 
 private static final String SCREEN_SHOTS_LOCATION = "mnt/sdcard/DCIM/DFRS";
 
-public static void takeScreenShot(View view, String name) throws Exception {
+public static void takeScreenShot(View view, String name, String project_folder) throws Exception {
   view.setDrawingCacheEnabled(true);
   view.buildDrawingCache();
   Bitmap b = view.getDrawingCache();
   FileOutputStream fos = null;
   try {
    File SDCardRoot = Environment.getExternalStorageDirectory();
-   File sddir = new File(SDCardRoot.getAbsolutePath() + "/DCIM/DFRS/");
+   File sddir = new File(SDCardRoot.getAbsolutePath() + "/DCIM/DFRS/"+project_folder);
    //File sddir = new File(Environment.getExternalStorageDirectory().getPath() + "/screenshots/");
    if (!sddir.exists()) {
    sddir.mkdirs();
@@ -30,7 +30,7 @@ public static void takeScreenShot(View view, String name) throws Exception {
    fos.close();
    }
   } catch (Exception e) {
-   Log.e("KoolJ_Screenshot", e.getMessage());
+   
   }
 }
 }
