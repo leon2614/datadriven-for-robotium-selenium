@@ -26,6 +26,7 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
 import android.view.View;
+import android.widget.*;
 
 import com.jayway.android.robotium.solo.Solo;
 
@@ -423,6 +424,134 @@ public class KoolJ_datadriven {
 											}
 										}
 									}
+									else if (key_wait.equals("searchEditText"))
+									{
+										if (solo_searchEditText(key_waitval1, solo))
+										{
+											if_logic = 0;
+										}
+										else
+										{
+											if_logic = 1;
+											if (!key_else[if_count].equals(null))
+											{
+												iiii_label = Integer.parseInt(key_else[if_count]);	
+												iiii = iiii_label;
+											}
+											else
+											{
+												iiii_label = Integer.parseInt(key_endif[if_count]);	
+												iiii = iiii_label;												
+											}
+										}
+									}
+									else if (key_wait.equals("searchButton"))
+									{
+										if (solo_searchButton(key_waitval1, solo))
+										{
+											if_logic = 0;
+										}
+										else
+										{
+											if_logic = 1;
+											if (!key_else[if_count].equals(null))
+											{
+												iiii_label = Integer.parseInt(key_else[if_count]);	
+												iiii = iiii_label;
+											}
+											else
+											{
+												iiii_label = Integer.parseInt(key_endif[if_count]);	
+												iiii = iiii_label;												
+											}
+										}
+									}
+									else if (key_wait.equals("isRadioButtonChecked"))
+									{
+										if (solo_isRadioButtonChecked(key_waitval1, solo))
+										{
+											if_logic = 0;
+										}
+										else
+										{
+											if_logic = 1;
+											if (!key_else[if_count].equals(null))
+											{
+												iiii_label = Integer.parseInt(key_else[if_count]);	
+												iiii = iiii_label;
+											}
+											else
+											{
+												iiii_label = Integer.parseInt(key_endif[if_count]);	
+												iiii = iiii_label;												
+											}
+										}
+									}
+									else if (key_wait.equals("isCheckBoxChecked"))
+									{
+										if (solo_isCheckBoxChecked(key_waitval1, solo))
+										{
+											if_logic = 0;
+										}
+										else
+										{
+											if_logic = 1;
+											if (!key_else[if_count].equals(null))
+											{
+												iiii_label = Integer.parseInt(key_else[if_count]);	
+												iiii = iiii_label;
+											}
+											else
+											{
+												iiii_label = Integer.parseInt(key_endif[if_count]);	
+												iiii = iiii_label;												
+											}
+										}
+									}
+									else if (key_wait.equals("isRadioButtonCheckedInx"))
+									{
+										int key_waitval1_var = Integer.parseInt(key_waitval1);
+										if (solo_isRadioButtonCheckedInx (key_waitval1_var, solo))
+										{
+											if_logic = 0;
+										}
+										else
+										{
+											if_logic = 1;
+											if (!key_else[if_count].equals(null))
+											{
+												iiii_label = Integer.parseInt(key_else[if_count]);	
+												iiii = iiii_label;
+											}
+											else
+											{
+												iiii_label = Integer.parseInt(key_endif[if_count]);	
+												iiii = iiii_label;												
+											}
+										}
+									}
+									else if (key_wait.equals("isCheckBoxCheckedInx"))
+									{
+										int key_waitval1_var = Integer.parseInt(key_waitval1);
+										if (solo_isCheckBoxCheckedInx (key_waitval1_var, solo))
+										{
+											if_logic = 0;
+										}
+										else
+										{
+											if_logic = 1;
+											if (!key_else[if_count].equals(null))
+											{
+												iiii_label = Integer.parseInt(key_else[if_count]);	
+												iiii = iiii_label;
+											}
+											else
+											{
+												iiii_label = Integer.parseInt(key_endif[if_count]);	
+												iiii = iiii_label;												
+											}
+										}
+									}
 									else
 									{
 										//go to ENDIF
@@ -726,12 +855,15 @@ public class KoolJ_datadriven {
 							}
 							else if (key_target.equals("enterText"))
 							{
-								
 								solo_enterkey(Integer.parseInt(data_key[iiii][2].toString()), data_key[iiii][3].toString(), solo);
+							}
+							else if (key_target.equals("clickOnButtonInx"))
+							{
+								int var_btn = Integer.parseInt(data_key[iiii][2].toString());
+								solo_clickonbuttoninx(var_btn, solo);
 							}
 							else if (key_target.equals("clickOnButton"))
 							{
-								
 								solo_clickonbutton(data_key[iiii][2].toString(), solo);
 							}
 							else if (key_target.equals("goto"))
@@ -753,8 +885,8 @@ public class KoolJ_datadriven {
 							}
 							else if(key_target.equals("waitForDialogToClose"))
 							{
-								long key_value = Long.valueOf(data_key[iiii][3].toString());
-								solo_waitForDialogToClose (key_value, solo);
+								long key_valueDialog = Long.valueOf(data_key[iiii][3].toString());
+								solo_waitForDialogToClose(key_valueDialog, solo);
 								
 							}
 							else if(key_target.equals("waitForText"))
@@ -762,15 +894,106 @@ public class KoolJ_datadriven {
 								String key_text = data_key[iiii][2].toString();
 								int key_minimumNumberOfMatches = Integer.parseInt(data_key[iiii][3].toString());
 								long key_timeout = Long.valueOf(data_key[iiii][4].toString());
-								solo_waitForText (key_text, key_minimumNumberOfMatches, key_timeout , solo);
+								solo_waitForText(key_text, key_minimumNumberOfMatches, key_timeout , solo);
 								
 							}
 							else if(key_target.equals("waitForView"))
 							{
 								String key_view = data_key[iiii][2].toString();
-								int key_timeout = Integer.parseInt(data_key[iiii][3].toString());
-								solo_waitForView (key_view, key_timeout, solo);
+								int key_vtimeout = Integer.parseInt(data_key[iiii][3].toString());
+								solo_waitForView(key_view, key_vtimeout, solo);
 							}
+							/*
+							else if(key_target.equals("getCurrentActivity"))
+							{
+								solo_getCurrentActivity (solo);
+							}
+							
+							else if(key_target.equals("getButton"))
+							{
+								String key_view = data_key[iiii][2].toString();
+								solo_getButton(key_view, solo);
+							}
+							*/
+							else if(key_target.equals("scrollToSide"))
+							{
+								int key_inx = Integer.parseInt(data_key[iiii][2].toString());
+								solo_scrollToSide(key_inx, solo);
+							}
+							else if(key_target.equals("scrollUpList"))
+							{
+								int key_inx = Integer.parseInt(data_key[iiii][2].toString());
+								solo_scrollUpList(key_inx, solo);
+							}
+							else if(key_target.equals("scrollDownList"))
+							{
+								int key_inx = Integer.parseInt(data_key[iiii][2].toString());
+								solo_scrollDownList(key_inx, solo);
+							}
+							else if(key_target.equals("scrollUp"))
+							{
+								solo_scrollUp(solo);
+							}
+							else if(key_target.equals("scrollDown"))
+							{
+								solo_scrollDown(solo);
+							}
+							else if(key_target.equals("clickOnText"))
+							{
+								String key_inx = data_key[iiii][2].toString();
+								solo_clickOnText(key_inx, solo);
+							}
+							else if(key_target.equals("clickOnRadioButton"))
+							{
+								int key_inx = Integer.parseInt(data_key[iiii][2].toString());
+								solo_clickOnRadioButton(key_inx, solo);
+							}
+							else if(key_target.equals("clickOnMenuItem"))
+							{
+								String key_inx = data_key[iiii][2].toString();
+								solo_clickOnMenuItem(key_inx, solo);
+							}
+							else if(key_target.equals("clickOnImageButton"))
+							{
+								int key_inx = Integer.parseInt(data_key[iiii][2].toString());
+								solo_clickOnImageButton(key_inx, solo);
+							}
+							else if(key_target.equals("clickOnImage"))
+							{
+								int key_inx = Integer.parseInt(data_key[iiii][2].toString());
+								solo_clickOnImage(key_inx, solo);
+							}
+							else if(key_target.equals("clickOnCheckBox"))
+							{
+								int key_inx = Integer.parseInt(data_key[iiii][2].toString());
+								solo_clickOnCheckBox(key_inx, solo);
+							}
+							else if(key_target.equals("clickOnEditText"))
+							{
+								int key_inx = Integer.parseInt(data_key[iiii][2].toString());
+								solo_clickOnEditText(key_inx, solo);
+							}
+							else if(key_target.equals("clickInList"))
+							{
+								int key_inx1 = Integer.parseInt(data_key[iiii][2].toString());
+								int key_inx2 = Integer.parseInt(data_key[iiii][3].toString());
+								solo_clickInList(key_inx1, key_inx2, solo);
+							}
+							else if(key_target.equals("clearEditTextInx"))
+							{
+								int key_inx = Integer.parseInt(data_key[iiii][2].toString());
+								solo_clearEditTextInx(key_inx, solo);
+							}
+							else if(key_target.equals("clearEditText"))
+							{
+								int key_inx = Integer.parseInt(data_key[iiii][2].toString());
+								//solo_clearEditText(key_inx, solo);
+							}
+							else if(key_target.equals("setActivityOrientation"))
+							{
+								int key_inx = Integer.parseInt(data_key[iiii][2].toString());
+								solo_setActivityOrientation(key_inx, solo);
+							}							
 						}				
 					}		
 
@@ -788,6 +1011,280 @@ public class KoolJ_datadriven {
 	
 //Define Robotium keywords
 //===========================================================
+	public boolean solo_isRadioButtonChecked (String text, Solo solo){
+		starttime = System.currentTimeMillis();
+		boolean isrbtnx_actual = solo.isRadioButtonChecked(text);
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		Log.e("KOOLJ_isRadioButtonChecked: ", ""+text);
+		excelreport("LOG_isRadioButtonChecked: " + text,""+elapsedtime);
+		return isrbtnx_actual;
+	}
+	public boolean solo_isRadioButtonCheckedInx (int index, Solo solo){
+		starttime = System.currentTimeMillis();
+		boolean isrbtnIx_actual = solo.isRadioButtonChecked(index);
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		Log.e("KOOLJ_isRadioButtonCheckedInx: ", ""+index);
+		excelreport("LOG_isRadioButtonCheckedInx: " + index,""+elapsedtime);
+		return isrbtnIx_actual;
+	}
+	public boolean solo_isCheckBoxChecked (String text, Solo solo){
+		starttime = System.currentTimeMillis();
+		boolean ischx_actual = solo.isCheckBoxChecked(text);
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		Log.e("KOOLJ_isCheckBoxChecked: ", ""+text);
+		excelreport("LOG_isCheckBoxChecked: " + text,""+elapsedtime);
+		return ischx_actual;
+	}
+	public boolean solo_isCheckBoxCheckedInx (int index, Solo solo){
+		starttime = System.currentTimeMillis();
+		boolean ischIx_actual = solo.isCheckBoxChecked(index);
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		Log.e("KOOLJ_isCheckBoxCheckedInx: ", ""+index);
+		excelreport("LOG_isCheckBoxCheckedInx: " + index,""+elapsedtime);
+		return ischIx_actual;
+	}
+	public void solo_scrollToSide (int inx, Solo solo) {
+		starttime = System.currentTimeMillis();
+		solo.scrollToSide(inx);
+		Log.e("KOOLJ_scrollToSide", ""+inx);
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		excelreport("LOG_scrollToSide_"+inx,""+elapsedtime);
+	}
+	public void solo_scrollUpList (int inx, Solo solo) {
+		starttime = System.currentTimeMillis();
+		solo.scrollUpList(inx);
+		Log.e("KOOLJ_scrollUpList", ""+inx);
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		excelreport("LOG_scrollUpList_"+inx,""+elapsedtime);
+	}
+	public void solo_scrollDownList (int inx, Solo solo) {
+		starttime = System.currentTimeMillis();
+		solo.scrollDownList(inx);
+		Log.e("KOOLJ_scrollDownList", ""+inx);
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		excelreport("LOG_scrollDown_"+inx,""+elapsedtime);
+	}
+	public void solo_scrollUp (Solo solo) {
+		starttime = System.currentTimeMillis();
+		solo.scrollUp();
+		Log.e("KOOLJ_scrollUp", "");
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		excelreport("LOG_scrollUp",""+elapsedtime);
+	}
+	public void solo_scrollDown (Solo solo) {
+		starttime = System.currentTimeMillis();
+		solo.scrollDown();
+		Log.e("KOOLJ_scrollDown", "");
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		excelreport("LOG_scrollDown",""+elapsedtime);
+	}
+	public void solo_pressMenuItemPR (int index, int itemsPerRow, Solo solo) {
+		starttime = System.currentTimeMillis();
+		solo.pressMenuItem(index, itemsPerRow);
+		Log.e("KOOLJ_pressMenuItemPR_", ""+index+"_itemperrow_"+itemsPerRow);
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		excelreport("LOG_pressMenuItemPR_"+index+"_itemperrow_"+itemsPerRow,""+elapsedtime);
+	}
+	public void solo_pressMenuItem(int index, Solo solo) {
+		starttime = System.currentTimeMillis();
+		solo.pressMenuItem(index);
+		Log.e("KOOLJ_pressMenuItem_", ""+index);
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		excelreport("LOG_pressMenuItem_"+index,""+elapsedtime);
+	}
+	/*
+	public void solo_getCurrentCheckBoxes (Solo solo) {
+		starttime = System.currentTimeMillis();
+		ArrayList cchxs_arr = solo.getCurrentCheckBoxes();
+		for (int i = 0; i < cchxs_arr.size(); i++ )
+		{
+			String current_cchxs = String.valueOf(((Button)(cchxs_arr.get(i))).getId());
+			Log.e("KOOLJ_listcheckbox_"+i, current_cchxs);
+		}
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		//excelreport("LOG_clickOnView_"+view,""+elapsedtime);
+	}
+	public void solo_getCurrentButtons (Solo solo) {
+		starttime = System.currentTimeMillis();
+		ArrayList cbtns_arr = solo.getCurrentButtons();
+		for (int i = 0; i < cbtns_arr.size(); i++ )
+		{
+			String current_cbtns = String.valueOf(((Button)(cbtns_arr.get(i))).getId());
+			Log.e("KOOLJ_listbutton_"+i, current_cbtns);
+		}
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		//excelreport("LOG_clickOnView_"+view,""+elapsedtime);
+	}
+	public void solo_getButton(String name, Solo solo){
+		starttime = System.currentTimeMillis();
+		String getButton_var = String.valueOf(solo.getButton(name, true).getId());
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		Log.e("KOOLJ_getButton", ""+getButton_var);
+		excelreport("LOG_getButton"+getButton_var,""+elapsedtime);
+	}	
+	public void solo_getCurrentActivity(Solo solo){
+		starttime = System.currentTimeMillis();
+		String getCurrentActivity_var = solo.getCurrentActivity().getClass().getSimpleName();
+		//String getCurrentActivity_var = solo.getCurrentActivity().getLocalClassName();
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		Log.e("KOOLJ_getCurrentActivity", ""+getCurrentActivity_var);
+		excelreport("LOG_getCurrentActivity",""+elapsedtime);
+	}
+	*/
+	public void solo_finishOpenedActivities (Solo solo){
+		starttime = System.currentTimeMillis();
+		solo.finishOpenedActivities();
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		Log.e("KOOLJ_finishOpenedActivities", "");
+		excelreport("LOG_finishOpenedActivities",""+elapsedtime);
+	}
+	public void solo_drag (float fromX, float toX, float fromY, float toY, int stepCount, Solo solo){
+		starttime = System.currentTimeMillis();
+		solo.drag(fromX, toX, fromY, toY, stepCount);
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		Log.e("KOOLJ_drag_from: ", ""+fromX+":"+fromY+"_to_"+toX+":"+toY+"_"+stepCount+"_times");
+		excelreport("LOG_drag: " + fromX+":"+fromY+"_to_"+toX+":"+toY+"_"+stepCount+"_times",""+elapsedtime);
+	}
+	public void solo_clickOnView (String view, Solo solo) {
+		starttime = System.currentTimeMillis();
+		Object[] cview_arr = solo.getCurrentViews().toArray();
+		for (int i = 0; i < cview_arr.length; i++ )
+		{
+			String current_cview = cview_arr[i].toString();
+			if (current_cview.equals(view))
+			{
+				Log.e("KOOLJ_clickOnView_"+solo.getCurrentViews().get(i), "");
+				solo.clickOnView(solo.getViews().get(i));
+				break;
+			}
+		}
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		excelreport("LOG_clickOnView_"+view,""+elapsedtime);
+	}
+	public void solo_clickOnText (String value, Solo solo){
+		starttime = System.currentTimeMillis();
+		solo.clickOnText(value, 0, true);
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		Log.e("KOOLJ_clickOnText: ", ""+ value);
+		excelreport("LOG_clickOnText: " + value,""+elapsedtime);
+	}
+	public void solo_clickOnRadioButton (int value, Solo solo){
+		starttime = System.currentTimeMillis();
+		solo.clickOnRadioButton(value);
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		Log.e("KOOLJ_clickOnRadioButton: ", ""+ value);
+		excelreport("LOG_clickOnRadioButton: " + value,""+elapsedtime);
+	}
+	public void solo_clickOnMenuItem (String value, Solo solo){
+		starttime = System.currentTimeMillis();
+		solo.clickOnMenuItem(value, true);
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		Log.e("KOOLJ_clickOnMenuItem: ", ""+ value);
+		excelreport("LOG_clickOnMenuItem: " + value,""+elapsedtime);
+	}
+	public void solo_clickOnImageButton (int value, Solo solo){
+		starttime = System.currentTimeMillis();
+		solo.clickOnImageButton(value);
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		Log.e("KOOLJ_clickOnImageButton: ", ""+ value);
+		excelreport("LOG_clickOnImageButton: " + value,""+elapsedtime);
+	}
+	public void solo_clickOnImage (int value, Solo solo){
+		starttime = System.currentTimeMillis();
+		solo.clickOnImage(value);
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		Log.e("KOOLJ_clickOnImage: ", ""+ value);
+		excelreport("LOG_clickOnImage: " + value,""+elapsedtime);
+	}
+	public void solo_clickOnCheckBox (int value, Solo solo){
+		starttime = System.currentTimeMillis();
+		solo.clickOnCheckBox(value);
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		Log.e("KOOLJ_clickOnCheckBox: ", ""+ value);
+		excelreport("LOG_clickOnCheckBox: " + value,""+elapsedtime);
+	}
+	public void solo_clickOnEditText (int value, Solo solo){
+		starttime = System.currentTimeMillis();
+		solo.clickOnEditText(value);
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		Log.e("KOOLJ_clickOnEditText: ", ""+ value);
+		excelreport("LOG_clickOnEditText: " + value,""+elapsedtime);
+	}
+	public void solo_clickInList (int value, int index, Solo solo){
+		starttime = System.currentTimeMillis();
+		solo.clickInList(value, index);
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		Log.e("KOOLJ_clickInList: ", ""+ value);
+		excelreport("LOG_clickInList: " + value + "_at_"+index,""+elapsedtime);
+	}
+	public void solo_clearEditTextInx (int value, Solo solo){
+		starttime = System.currentTimeMillis();
+		solo.clearEditText(value);
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		Log.e("KOOLJ_clearEditTextInx: ", ""+ value);
+		excelreport("LOG_clearEditTextInx: " + value,""+elapsedtime);
+	}
+	public void solo_clearEditText (EditText value, Solo solo){
+		starttime = System.currentTimeMillis();
+		solo.clearEditText(value);
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		Log.e("KOOLJ_clearEditText: ", ""+value);
+		excelreport("LOG_clearEditText: " + value,""+elapsedtime);
+	}
+	public void solo_setActivityOrientation (int value, Solo solo){
+		starttime = System.currentTimeMillis();
+		solo.setActivityOrientation(value);
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		Log.e("KOOLJ_setActivityOrientation: ", ""+value);
+		excelreport("LOG_setActivityOrientation: " + value,""+elapsedtime);
+	}
+	public boolean solo_searchEditText (String value, Solo solo){
+		starttime = System.currentTimeMillis();
+		boolean valueEditText_actual = solo.searchEditText(value);
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		Log.e("KOOLJ_searchEditText: "+value, ""+valueEditText_actual);
+		excelreport("LOG_searchEditText: " + value + "_returned_" + valueEditText_actual,""+elapsedtime);
+		return valueEditText_actual;
+	}
+	public boolean solo_searchButton (String value, Solo solo){
+		starttime = System.currentTimeMillis();
+		boolean valueButto_actual = solo.searchButton(value, 0, true);
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		Log.e("KOOLJ_searchButton: "+value, ""+valueButto_actual);
+		excelreport("LOG_searchButton: " + value + "_returned_" + valueButto_actual,""+elapsedtime);
+		return valueButto_actual;
+	}
 	public boolean solo_waitForView (String view, int timeout, Solo solo) {
 		starttime = System.currentTimeMillis();
 		Object[] view_arr = solo.getCurrentViews().toArray();
@@ -844,47 +1341,31 @@ public class KoolJ_datadriven {
 		excelreport("LOG_waitForActivity_"+name,""+elapsedtime);
 		return waitForActivity_status;
 	}
+	public void solo_clickonbuttoninx (int value_1, Solo solo)
+	{
+		Log.e("KOOLJ_clickonButtonInx_", ""+value_1);
+		starttime = System.currentTimeMillis();
+		solo.clickOnButton(value_1);
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		excelreport("LOG_clickonButtonInx_"+value_1,""+elapsedtime);
+	}
 	public void solo_clickonbutton (String value, Solo solo)
 	{
-		if(value.equals("0")) 
-		{
-			int value_1=Integer.parseInt(value);
-			Log.e("KOOLJ_clickonbutton_", ""+value);
-			starttime = System.currentTimeMillis();
-			solo.clickOnButton(value_1);
-			endtime = System.currentTimeMillis();
-			elapsedtime = endtime - starttime;
-			excelreport("LOG_clickonbutton_"+value,""+elapsedtime);
-		} 
-		else if(value.equals("1")) 
-		{
-			int value_1=Integer.parseInt(value);
-			Log.e("KOOLJ_clickonbutton_", ""+value);
-			starttime = System.currentTimeMillis();
-			solo.clickOnButton(value_1);
-			endtime = System.currentTimeMillis();
-			elapsedtime = endtime - starttime;
-			excelreport("LOG_clickonbutton_"+value,""+elapsedtime);
-		} 
-		else if(value.equals("2")) 
-		{
-			int value_1=Integer.parseInt(value);
-			Log.e("KOOLJ_clickonbutton_", ""+value);
-			starttime = System.currentTimeMillis();
-			solo.clickOnButton(value_1);
-			endtime = System.currentTimeMillis();
-			elapsedtime = endtime - starttime;
-			excelreport("LOG_clickonbutton_"+value,""+elapsedtime);
-		}
-		else
-		{	
-			Log.e("KOOLJ_clickonbutton_", ""+value);
-			starttime = System.currentTimeMillis();
-			solo.clickOnButton(value);
-			endtime = System.currentTimeMillis();
-			elapsedtime = endtime - starttime;
-			excelreport("LOG_clickonbutton_"+value,""+elapsedtime);
-		}
+		Log.e("KOOLJ_clickonbutton_", ""+value);
+		starttime = System.currentTimeMillis();
+		solo.clickOnButton(value);
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		excelreport("LOG_clickonbutton_"+value,""+elapsedtime);
+	}
+	public void solo_enterkeyV (EditText editText, String value, Solo solo){
+		Log.e("KOOLJ_entertextV_", value);
+		starttime = System.currentTimeMillis();
+		solo.enterText(editText, value);
+		endtime = System.currentTimeMillis();
+		elapsedtime = endtime - starttime;
+		excelreport("LOG_entertextV_"+value,""+elapsedtime);
 	}
     public void solo_enterkey (int text, String value, Solo solo){
 		Log.e("KOOLJ_entertext_", value);
@@ -922,13 +1403,12 @@ public class KoolJ_datadriven {
 		excelreport("LOG_goback_",""+elapsedtime);
 	}
 	public boolean solo_searchtext (String value, Solo solo){
-		boolean value_expected = true;
 		starttime = System.currentTimeMillis();
 		boolean value_actual = solo.searchText(value, 0, true, true);
 		endtime = System.currentTimeMillis();
 		elapsedtime = endtime - starttime;
-		Log.e("KOOLJ_SEARCHTEXT: "+value, ""+value_actual);
-		excelreport("LOG_SEARCHTEXT: " + value + "_returned_" + value_actual,""+elapsedtime);
+		Log.e("KOOLJ_searchtext: "+value, ""+value_actual);
+		excelreport("LOG_searchText: " + value + "_returned_" + value_actual,""+elapsedtime);
 		return value_actual;
 	}
 	public void solo_key (int value, Solo solo){
@@ -1146,7 +1626,7 @@ public class KoolJ_datadriven {
 	public void WriteToExcel ( String [][] args ) {
         File SDCardRoot = Environment.getExternalStorageDirectory();
 		File dcim = new File(SDCardRoot.getAbsolutePath() + "/DCIM/DFRS"+"/"+project_folder);
-		String fileName=dcim+"/output.xls";
+		String fileName=dcim+"/output_" + System.currentTimeMillis() + ".xls";
 
         HSSFWorkbook myWorkBook = new HSSFWorkbook();
         HSSFSheet mySheet = myWorkBook.createSheet();
