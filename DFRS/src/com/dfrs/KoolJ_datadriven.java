@@ -62,6 +62,7 @@ public class KoolJ_datadriven {
 	int resid = 0;
 	int read_idx_row = 0;
 	int value_inx_acc = 0;
+	int value_inx_start = 0;
 	
 	Activity act_var;
 	String class_name;
@@ -1251,6 +1252,7 @@ public class KoolJ_datadriven {
 		excelreport("LOG_ReadDATA: "+ data_test_var, ""+elapsedtime);
 		read_idx_row = 0;
 		value_inx_acc = 0;
+		value_inx_start = 0;
 	}
 	public void solo_KJsaveScreenShot (Solo solo, String name, String value){
 		starttime = System.currentTimeMillis();
@@ -1378,6 +1380,31 @@ public class KoolJ_datadriven {
 	}
 	public void solo_KJsetText(Solo solo) {
 		starttime = System.currentTimeMillis();
+				
+		//check if VALUE from DATA_READ
+		String txt_read = "$";
+		int  i_read = -1;
+		i_read = class_text.indexOf(txt_read);
+		String value_sub = class_text.substring(i_read + 1, class_text.length());
+		int value_inx = Integer.parseInt(value_sub);
+		if (i_read != -1)
+		{
+			class_text = data_read[read_idx_row][value_inx].toString();
+			
+			//get READ-COL start
+			if (value_inx_acc == 0)
+			{
+				value_inx_acc = value_inx;
+				value_inx_start = 1;
+			}
+
+			//change the ROW
+			if ((value_inx == value_inx_acc) & (value_inx_start != 0))
+			{
+				read_idx_row++;
+			}
+		}
+		
 		act_var.runOnUiThread(new Runnable() 
 		{
 			@Override
@@ -2267,21 +2294,23 @@ public class KoolJ_datadriven {
 		starttime = System.currentTimeMillis();
 		//check if VALUE from DATA_READ
 		String txt_read = "$";
-		int  i_read = value.indexOf(txt_read);
+		int  i_read = -1;
+		i_read = value.indexOf(txt_read);
 		String value_sub = value.substring(i_read + 1, value.length());
-		int value_inx = Integer.parseInt(value_sub);
 		if (i_read != -1)
 		{
+			int value_inx = Integer.parseInt(value_sub);
 			value = data_read[read_idx_row][value_inx].toString();
 			
 			//get READ-COL start
 			if (value_inx_acc == 0)
 			{
 				value_inx_acc = value_inx;
+				value_inx_start = 1;
 			}
 
 			//change the ROW
-			if ((value_inx == value_inx_acc) & (value_inx_acc != 0))
+			if ((value_inx == value_inx_acc) & (value_inx_start != 0))
 			{
 				read_idx_row++;
 			}
