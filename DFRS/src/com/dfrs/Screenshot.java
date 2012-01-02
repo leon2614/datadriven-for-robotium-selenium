@@ -24,7 +24,7 @@ public static void takeScreenShot(View view, String name, String project_folder)
    if (!sddir.exists()) {
    sddir.mkdirs();
    }
-   fos = new FileOutputStream(sddir.getPath() + "/" +  name + "_" + System.currentTimeMillis() + ".png");
+   fos = new FileOutputStream(sddir.getPath() + "/" +  name + ".png");
    if (fos != null) {
    b.compress(Bitmap.CompressFormat.JPEG, 90, fos);
    fos.close();
