@@ -257,6 +257,7 @@ public class KoolJ_datadriven {
 						
 						//Store "" values of STORE if have
 						Object[][] varstore_kv=new Object[varstore_count][2];
+						if (varstore_count > 0) 
 						varstore_kv[0][0]="";
 						for (int iiii=iiii_label; iiii< data_key.length; iiii++)
 						{
@@ -975,8 +976,9 @@ public class KoolJ_datadriven {
 							}
 							else if(key_target.equals("clickOnText"))
 							{
-								String key_inx = data_key[iiii][2].toString().trim();
-								solo_clickOnText(key_inx, solo);
+								String key_inx1 = data_key[iiii][2].toString().trim();
+								int key_inx2 = Integer.parseInt(data_key[iiii][3].toString().trim());
+								solo_clickOnText(key_inx1, key_inx2, solo);
 							}
 							else if(key_target.equals("clickOnRadioButton"))
 							{
@@ -1224,7 +1226,13 @@ public class KoolJ_datadriven {
 							{
 								String key_value1 = data_key[iiii][2].toString().trim();
 								KJdataread(key_value1);
-							}								
+							}	
+							else if(key_target.equals("getAllOpenedActivities"))
+							{
+								//String key_value1 = data_key[iiii][2].toString().trim();
+								solo_getAllOpenedActivities(solo);
+							}							
+							
 						}				
 					}		
 
@@ -1340,7 +1348,7 @@ public class KoolJ_datadriven {
 		value_probarr[3][0] = "TextSize";
 		
 		int[] origin = new int[2];
-		v_var	.getLocationOnScreen(origin);
+		v_var.getLocationOnScreen(origin);
 			
 		value_probarr[4][0] = "OnScreenTopLeftX";
 		value_probarr[4][1] = String.valueOf(origin[0]);
@@ -2117,9 +2125,9 @@ public class KoolJ_datadriven {
 		elapsedtime = endtime - starttime;
 		excelreport("LOG_clickOnView_"+view,""+elapsedtime);
 	}
-	public void solo_clickOnText (String value, Solo solo){
+	public void solo_clickOnText (String value, int value2, Solo solo){
 		starttime = System.currentTimeMillis();
-		solo.clickOnText(value, 0, true);
+		solo.clickOnText(value, value2, true);
 		endtime = System.currentTimeMillis();
 		elapsedtime = endtime - starttime;
 		Log.e("KOOLJ_clickOnText: ", ""+ value);
@@ -2334,7 +2342,6 @@ public class KoolJ_datadriven {
 					Log.e("KOOLJ_getScreenshot_"+solo.getViews().get(i), name);
 					name = name_var+ "_" + i + "_" + System.currentTimeMillis();
 					takeSS.takeScreenShot(solo.getViews().get(i), name, project_folder);
-
 				}
 				catch (Exception e) 
 				{
