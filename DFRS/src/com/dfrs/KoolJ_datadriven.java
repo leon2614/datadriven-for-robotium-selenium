@@ -1403,7 +1403,6 @@ public class KoolJ_datadriven {
 			if (value_inx_acc == 0)
 			{
 				value_inx_acc = value_inx;
-				value_inx_start = 1;
 			}
 
 			//change the ROW
@@ -1411,6 +1410,7 @@ public class KoolJ_datadriven {
 			{
 				read_idx_row++;
 			}
+			value_inx_start = 1;
 		}
 		
 		act_var.runOnUiThread(new Runnable() 
@@ -2305,16 +2305,14 @@ public class KoolJ_datadriven {
 		int  i_read = -1;
 		i_read = value.indexOf(txt_read);
 		String value_sub = value.substring(i_read + 1, value.length());
+		int value_inx = Integer.parseInt(value_sub);
 		if (i_read != -1)
 		{
-			int value_inx = Integer.parseInt(value_sub);
 			value = data_read[read_idx_row][value_inx].toString();
-			
 			//get READ-COL start
 			if (value_inx_acc == 0)
 			{
 				value_inx_acc = value_inx;
-				value_inx_start = 1;
 			}
 
 			//change the ROW
@@ -2322,6 +2320,7 @@ public class KoolJ_datadriven {
 			{
 				read_idx_row++;
 			}
+			value_inx_start = 1;
 		}
 		solo.enterText(text, value);
 		endtime = System.currentTimeMillis();
